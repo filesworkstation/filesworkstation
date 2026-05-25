@@ -4,30 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Dashboard - File Work Station</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans min-h-screen">
 
-    <!-- Premium Navigation Header Bar matching home screen style specs -->
     <nav class="p-3 border-b border-gray-200 bg-white flex justify-between items-center px-6 shadow-sm">
         <h1 class="text-xl font-black tracking-widest text-blue-600 leading-none">FILE WORK STATION</h1>
         <a href="index.html" class="text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-all">← Back to Shop</a>
     </nav>
 
-    <!-- Main Active Tracking Box Element Grid Frame -->
     <div class="max-w-3xl mx-auto p-4 mt-6">
         <h2 class="text-lg font-black text-gray-900 uppercase tracking-wider mb-4">My Dashboard & Files</h2>
         
-        <!-- Live Node jahan streaming rows list updates instantly -->
         <div id="studentDashboardBox" class="space-y-3">
             <div class="bg-white p-6 border rounded-xl text-center text-gray-400 text-xs">
                 Fetching secure user order states from Firebase cloud stream pipelines...
             </div>
         </div>
     </div>
-
-    <!-- Live Cloud Sync Database Streaming Runtime Module Scripts -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -47,6 +41,20 @@
 
         const myOrderIds = JSON.parse(localStorage.getItem('myFwsOrders')) || [];
         const container = document.getElementById('studentDashboardBox');
+
+        // Force image download injector to bypass mobile browser raw base64 link blocks
+        window.triggerFileDownload = function(base64Data, filename) {
+            try {
+                const linkAnchor = document.createElement('a');
+                linkAnchor.href = base64Data;
+                linkAnchor.download = filename || 'customized-practical-sheet.jpg';
+                document.body.appendChild(linkAnchor);
+                linkAnchor.click();
+                document.body.removeChild(linkAnchor);
+            } catch (err) {
+                alert("Error triggering download pipeline on this browser session.");
+            }
+        };
 
         if (myOrderIds.length === 0) {
             container.innerHTML = `
@@ -73,7 +81,8 @@
                     // Live state status evaluations mapping
                     if (order.status === "Approved") {
                         badgeStyle = "bg-green-50 text-green-600 border-green-200";
-                        actionBtn = `<a href="${order.downloadUrl}" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-center text-white font-bold text-[10px] px-4 py-2 rounded-lg transition-all block shadow-sm shadow-blue-200">Download Ready File</a>`;
+                        // Fixed: Calls injected function to force-download file as clean image instead of opening raw text url string
+                        actionBtn = `<button onclick="window.triggerFileDownload('${order.downloadUrl}', '${order.orderId}.jpg')" class="bg-blue-600 hover:bg-blue-700 text-center text-white font-bold text-[10px] px-4 py-2 rounded-lg transition-all block shadow-sm shadow-blue-200 cursor-pointer">Download Ready File</button>`;
                     } else if (order.status === "Rejected") {
                         badgeStyle = "bg-red-50 text-red-600 border-red-200";
                         actionBtn = `<span class="text-xs font-bold text-red-500 bg-red-50 border border-red-100 px-2 py-1 rounded">UTR Declined / Fraud</span>`;
