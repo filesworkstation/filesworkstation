@@ -4,15 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Dashboard - File Work Station</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <style>
-        /* Hidden layout frame specific for high quality PDF printing generation */
-        @media print {
-            body * { display: none !important; }
-            #pdfPrintPreviewArea, #pdfPrintPreviewArea * { display: block !important; }
-            #pdfPrintPreviewArea { position: absolute; left: 0; top: 0; width: 100%; height: 100%; margin: 0; padding: 0; }
-        }
-    </style>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans min-h-screen">
 
@@ -31,7 +24,7 @@
         </div>
     </div>
 
-    <div id="pdfPrintPreviewArea" class="hidden"></div>
+    <div id="html2pdfSandbox" style="position: absolute; left: -9999px; top: -9999px;"></div>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -52,23 +45,31 @@
         const myOrderIds = JSON.parse(localStorage.getItem('myFwsOrders')) || [];
         const container = document.getElementById('studentDashboardBox');
 
-        // Foolproof PDF Engine: Generates print stream matrix from base64 canvas stream
-        window.downloadAsPDF = function(base64Data, orderTitle, studentName) {
-            try {
-                const printContainer = document.getElementById('pdfPrintPreviewArea');
-                printContainer.innerHTML = `
-                    <div style="width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center; background: white; margin: 0; padding: 0;">
-                        <img src="${base64Data}" style="width: 100%; max-height: 100%; object-fit: contain; page-break-after: always;" />
-                    </div>
-                `;
-                // Brief absolute timeout to let the DOM stream render image components
-                setTimeout(() => {
-                    window.print();
-                    printContainer.innerHTML = "";
-                }, 500);
-            } catch (err) {
-                alert("Failed to compile vector structures into native PDF stream.");
-            }
+        // Advanced html2pdf Generator Engine to bypass native mobile browser print blocks
+        window.downloadAsPDF = function(base64Data, orderId) {
+            const sandbox = document.getElementById('html2pdfSandbox');
+            
+            // Injecting clean template element inside hidden sandbox layer
+            sandbox.innerHTML = `
+                <div style="width: 595px; height: 842px; display: flex; justify-content: center; align-items: center; background-color: #ffffff; margin: 0; padding: 0;">
+                    <img src="${base64Data}" style="width: 100%; height: 100%; object-fit: contain;" />
+                </div>
+            `;
+
+            const pdfOptions = {
+                margin: 0,
+                filename: `FWS-Order-${orderId}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, logging: false },
+                jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' }
+            };
+
+            // Triggers silent backend rendering and forces native file streaming download
+            html2pdf().set(pdfOptions).from(sandbox).save().then(() => {
+                sandbox.innerHTML = ""; // Flushes storage sandbox cache strings
+            }).catch((err) => {
+                alert("Error compilation runtime on generating document blob structure.");
+            });
         };
 
         if (myOrderIds.length === 0) {
@@ -96,8 +97,8 @@
                     // Live state status evaluations mapping
                     if (order.status === "Approved") {
                         badgeStyle = "bg-green-50 text-green-600 border-green-200";
-                        // Calls injected PDF builder compiler to stream layout vectors directly to mobile system printer container
-                        actionBtn = `<button onclick="window.downloadAsPDF('${order.downloadUrl}', '${order.item}', '${order.name}')" class="bg-blue-600 hover:bg-blue-700 text-center text-white font-bold text-[10px] px-4 py-2 rounded-lg transition-all block shadow-sm shadow-blue-200 cursor-pointer">Download PDF File</button>`;
+                        // Custom client-side trigger attached directly to action panel click node
+                        actionBtn = `<button onclick="window.downloadAsPDF('${order.downloadUrl}', '${order.orderId}')" class="bg-blue-600 hover:bg-blue-700 text-center text-white font-bold text-[10px] px-4 py-2 rounded-lg transition-all block shadow-sm shadow-blue-200 cursor-pointer">Download PDF File</button>`;
                     } else if (order.status === "Rejected") {
                         badgeStyle = "bg-red-50 text-red-600 border-red-200";
                         actionBtn = `<span class="text-xs font-bold text-red-500 bg-red-50 border border-red-100 px-2 py-1 rounded">UTR Declined / Fraud</span>`;
