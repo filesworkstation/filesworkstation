@@ -45,16 +45,29 @@
         const myOrderIds = JSON.parse(localStorage.getItem('myFwsOrders')) || [];
         const container = document.getElementById('studentDashboardBox');
 
-        // Advanced html2pdf Generator Engine to bypass native mobile browser print blocks
+        // FIXED PDF ENGINE: Waits for the image to fully load before generating PDF
         window.downloadAsPDF = function(base64Data, orderId) {
             const sandbox = document.getElementById('html2pdfSandbox');
             
-            // Injecting clean template element inside hidden sandbox layer
-            sandbox.innerHTML = `
-                <div style="width: 595px; height: 842px; display: flex; justify-content: center; align-items: center; background-color: #ffffff; margin: 0; padding: 0;">
-                    <img src="${base64Data}" style="width: 100%; height: 100%; object-fit: contain;" />
-                </div>
-            `;
+            // Creating image element dynamically
+            const imgElement = document.createElement('img');
+            imgElement.src = base64Data;
+            imgElement.style.width = "100%";
+            imgElement.style.height = "100%";
+            imgElement.style.objectFit = "contain";
+
+            // Injecting inside container with exact A4 vector matrix layout
+            sandbox.innerHTML = "";
+            const wrapperDiv = document.createElement('div');
+            wrapperDiv.style.width = "595px";
+            wrapperDiv.style.height = "842px";
+            wrapperDiv.style.display = "flex";
+            wrapperDiv.style.justifyContent = "center";
+            wrapperDiv.style.alignItems = "center";
+            wrapperDiv.style.backgroundColor = "#ffffff";
+            
+            wrapperDiv.appendChild(imgElement);
+            sandbox.appendChild(wrapperDiv);
 
             const pdfOptions = {
                 margin: 0,
@@ -64,12 +77,17 @@
                 jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' }
             };
 
-            // Triggers silent backend rendering and forces native file streaming download
-            html2pdf().set(pdfOptions).from(sandbox).save().then(() => {
-                sandbox.innerHTML = ""; // Flushes storage sandbox cache strings
-            }).catch((err) => {
-                alert("Error compilation runtime on generating document blob structure.");
-            });
+            // CRITICAL FIX: Trigger PDF generation ONLY after image is 100% loaded in DOM cache
+            imgElement.onload = function() {
+                // Short 300ms fallback timeout for slower devices to prevent blank renders
+                setTimeout(() => {
+                    html2pdf().set(pdfOptions).from(sandbox).save().then(() => {
+                        sandbox.innerHTML = ""; // Flushes storage sandbox cache strings
+                    }).catch((err) => {
+                        alert("Error during PDF document generation.");
+                    });
+                }, 300);
+            };
         };
 
         if (myOrderIds.length === 0) {
@@ -97,7 +115,6 @@
                     // Live state status evaluations mapping
                     if (order.status === "Approved") {
                         badgeStyle = "bg-green-50 text-green-600 border-green-200";
-                        // Custom client-side trigger attached directly to action panel click node
                         actionBtn = `<button onclick="window.downloadAsPDF('${order.downloadUrl}', '${order.orderId}')" class="bg-blue-600 hover:bg-blue-700 text-center text-white font-bold text-[10px] px-4 py-2 rounded-lg transition-all block shadow-sm shadow-blue-200 cursor-pointer">Download PDF File</button>`;
                     } else if (order.status === "Rejected") {
                         badgeStyle = "bg-red-50 text-red-600 border-red-200";
