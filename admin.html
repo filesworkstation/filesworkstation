@@ -3,89 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - File Work Station</title>
+    <title>Admin Panel - File Work Station</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <style>
-        .clickable-canvas { aspect-ratio: 1 / 1.414; max-width: 240px; position: relative; cursor: crosshair; }
-    </style>
+    <!-- CDN For Instant Excel Sheet Generation (SheetJS) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans min-h-screen">
+<body class="bg-gray-100 text-gray-800 font-sans min-h-screen">
 
-    <nav class="sticky top-0 z-50 p-3 border-b border-gray-200 bg-white flex justify-center items-center shadow-sm">
-        <h1 class="text-xl font-black tracking-widest text-blue-600">FILE WORK STATION - MASTER ADMIN</h1>
+    <!-- Premium Admin Navigation Bar -->
+    <nav class="p-4 border-b border-gray-200 bg-white flex justify-between items-center px-6 shadow-xs">
+        <div>
+            <h1 class="text-xl font-black tracking-widest text-blue-600 leading-none">FWS CONTROL CENTER</h1>
+            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wider block mt-1">Live Order Management Panel</span>
+        </div>
+        <div class="flex gap-2">
+            <!-- Excel Generation Engine Button Trigger -->
+            <button onclick="window.exportToExcelSheet()" class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-3 py-2 rounded-lg shadow-sm transition-all flex items-center gap-1 cursor-pointer">
+                📊 Export to Excel
+            </button>
+            <a href="index.html" class="text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg transition-all">Go to Shop →</a>
+        </div>
     </nav>
 
-    <div class="max-w-6xl mx-auto p-4 grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
-        
-        <!-- LEFT: ORDERS LIST -->
-        <div class="md:col-span-2 space-y-6">
-            <div class="grid grid-cols-2 gap-4">
-                <div class="bg-white p-4 rounded-xl border shadow-sm">
-                    <span class="text-[10px] font-bold text-gray-400 uppercase block">Pending Approvals</span>
-                    <p id="pendingCount" class="text-2xl font-black text-amber-500">0</p>
-                </div>
-                <div class="bg-white p-4 rounded-xl border shadow-sm">
-                    <span class="text-[10px] font-bold text-gray-400 uppercase block">Total Net Earnings</span>
-                    <p id="revenueCount" class="text-2xl font-black text-green-600">₹0</p>
-                </div>
-            </div>
-
-            <div class="bg-white p-5 rounded-xl border shadow-sm">
-                <h2 class="text-xs font-bold text-gray-900 uppercase tracking-wider border-b pb-3 mb-4">Verification Pipeline</h2>
-                <div id="orderQueueContainer" class="space-y-3">
-                    <p class="text-xs text-gray-400 text-center py-4">Listening for live incoming orders from Firebase...</p>
-                </div>
-            </div>
+    <!-- Filter Search Engine Module Layout Grid -->
+    <div class="max-w-7xl mx-auto p-4 mt-4">
+        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-xs mb-4">
+            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-2">🔍 Gali Search Engine Filter</p>
+            <input type="text" id="adminSearchField" oninput="window.filterLiveOrders()" placeholder="Search by Student Name or 12-Digit UTR Number..." class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs focus:outline-none focus:border-blue-600 font-semibold">
         </div>
 
-        <!-- RIGHT: UPLOAD NEW FILE TEMPLATE WITH CLICK POSITIONER -->
-        <div class="bg-white p-5 rounded-xl border shadow-sm h-fit">
-            <h2 class="text-xs font-bold text-gray-900 uppercase tracking-wider border-b pb-3 mb-4">Add New Template to Shop</h2>
-            
-            <div class="space-y-3 text-xs">
-                <div>
-                    <label class="block font-bold text-gray-500 uppercase mb-1">Template Title</label>
-                    <input type="text" id="prodTitle" placeholder="e.g., Physics Side Box Page" class="w-full bg-gray-50 border rounded-lg p-2.5 text-xs focus:outline-none focus:border-blue-600">
-                </div>
-                <div>
-                    <label class="block font-bold text-gray-500 uppercase mb-1">Price Per Page (₹)</label>
-                    <input type="number" id="prodPrice" value="5" class="w-full bg-gray-50 border rounded-lg p-2.5 text-xs focus:outline-none focus:border-blue-600">
-                </div>
-                <div>
-                    <label class="block font-bold text-gray-500 uppercase mb-1">Category</label>
-                    <select id="prodCategory" class="w-full bg-gray-50 border rounded-lg p-2.5 text-xs focus:outline-none focus:border-blue-600">
-                        <option value="Practical Files">Practical Files</option>
-                        <option value="Holiday Homework">Holiday Homework</option>
-                        <option value="Project Covers">Project Covers</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block font-bold text-gray-500 uppercase mb-1">Select Page Photo (📸 Camera/Gallery)</label>
-                    <input type="file" id="prodImageFile" accept="image/*" onchange="window.previewSelectedImage(event)" class="w-full bg-gray-50 border rounded-lg p-2 text-xs">
-                </div>
-
-                <!-- VISUAL POSITION SELECTOR LOGIC -->
-                <div id="positionSelectorZone" class="hidden border border-dashed border-blue-300 rounded-xl p-3 bg-blue-50/50 flex flex-col items-center">
-                    <span class="text-[10px] text-blue-600 font-bold uppercase mb-1 block">⚠️ Photo par wahan click karo jahan Naam chahiye:</span>
-                    <div id="canvasContainer" class="clickable-canvas bg-cover bg-center border rounded shadow-sm" onclick="window.markCoordinates(event)">
-                        <!-- Target dot anchor locator marker -->
-                        <div id="targetMarkerDot" class="absolute h-3 w-3 bg-red-600 border-2 border-white rounded-full -mt-1.5 -ml-1.5 hidden transition-all"></div>
-                    </div>
-                </div>
-                
-                <button onclick="window.uploadProductToShop()" id="uploadBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-lg uppercase tracking-wider mt-2 transition-all">
-                    Publish Item Live
-                </button>
+        <!-- Master Responsive Grid View Frame Table -->
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse" id="ordersMasterTable">
+                    <thead>
+                        <tr class="bg-gray-50 border-b border-gray-200 text-[10px] font-black text-gray-400 uppercase tracking-wider">
+                            <th class="p-3">Order Specs</th>
+                            <th class="p-3">Janam Kundli Details</th>
+                            <th class="p-3">Delivery Address / Location</th>
+                            <th class="p-3">Financials / UTR</th>
+                            <th class="p-3 text-right">Operational Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminOrderRowsContainer" class="divide-y divide-gray-100 text-xs">
+                        <!-- Live dynamic stream lines template row injects here -->
+                        <tr id="initialAdminLoadingState">
+                            <td colspan="5" class="text-center p-8 text-gray-400 text-xs">Streaming active databases pipelines securely from Firebase...</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
-
     </div>
-
-    <!-- Firebase Script Connector Module -->
+    <!-- Real-Time Database Action Engine Controllers Scripts -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+        // Your Exact Project Database Credentials 
         const firebaseConfig = {
           apiKey: "AIzaSyBC7S5uJd9izO5qOV8W40T7KtNvGEk6oIU",
           authDomain: "filesworkstation-b3074.firebaseapp.com",
@@ -98,118 +74,140 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        let totalRevenue = 0;
-        let selectedPctX = 50; // Default center fallback percentages
-        let selectedPctY = 50;
-        let activeBase64String = "";
+        let masterOrdersLocalCache = []; // Stores matching snapshots for real-time offline query filters
 
-        // Orders stream snapshot updates channel
+        // Database live listener pipeline
         onSnapshot(collection(db, "orders"), (snapshot) => {
-            const container = document.getElementById('orderQueueContainer');
-            let pendingCounter = 0; totalRevenue = 0; container.innerHTML = "";
+            masterOrdersLocalCache = [];
+            const container = document.getElementById('adminOrderRowsContainer');
+            container.innerHTML = "";
 
-            snapshot.forEach((documentSnapshot) => {
-                const order = documentSnapshot.data();
-                const docId = documentSnapshot.id;
-                if (order.status === "Approved") totalRevenue += Number(order.amount) || 0;
-
-                if (order.status === "Pending") {
-                    pendingCounter++;
-                    container.innerHTML += `
-                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <span class="font-extrabold text-sm text-gray-900">${order.name}</span>
-                                    <span class="bg-blue-50 text-blue-600 text-[9px] font-bold px-1.5 py-0.5 rounded border border-blue-200">${order.quantity} Pages</span>
-                                </div>
-                                <p class="text-xs text-gray-400 mt-0.5">Item: ${order.item} | ID: ${order.orderId}</p>
-                                <p class="text-[11px] font-mono text-blue-600 font-bold bg-white border border-gray-200 px-2 py-0.5 rounded inline-block mt-1">UTR: ${order.utr}</p>
-                            </div>
-                            <div class="flex items-center gap-2 justify-between">
-                                <span class="text-base font-black text-gray-900 mr-2">₹${order.amount}</span>
-                                <button onclick="window.changeStatus('${docId}', 'Approved')" class="bg-green-600 hover:bg-green-700 text-white font-bold text-[10px] px-3 py-1.5 rounded-lg uppercase">Approve</button>
-                                <button onclick="window.changeStatus('${docId}', 'Rejected')" class="bg-red-500 hover:bg-red-600 text-white font-bold text-[10px] px-3 py-1.5 rounded-lg uppercase">Reject</button>
-                            </div>
-                        </div>
-                    `;
-                }
-            });
-            document.getElementById('pendingCount').innerText = pendingCounter;
-            document.getElementById('revenueCount').innerText = `₹${totalRevenue}`;
-            if (pendingCounter === 0) container.innerHTML = `<p class="text-center text-xs text-gray-400 py-6">All clear! 🎉</p>`;
-        });
-
-        async function changeStatus(docId, targetStatus) {
-            try { await updateDoc(doc(db, "orders", docId), { status: targetStatus }); } catch (err) {}
-        }
-        window.changeStatus = changeStatus;
-
-        // Image file reading converter hook
-        window.previewSelectedImage = function(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                activeBase64String = e.target.result;
-                document.getElementById('canvasContainer').style.backgroundImage = `url('${activeBase64String}')`;
-                document.getElementById('positionSelectorZone').classList.remove('hidden');
-                
-                // Reset placement pin to center on fresh card load
-                const dot = document.getElementById('targetMarkerDot');
-                dot.style.left = "50%"; dot.style.top = "50%";
-                dot.classList.remove('hidden');
-                selectedPctX = 50; selectedPctY = 50;
-            };
-            reader.readAsDataURL(file);
-        };
-
-        // Capture absolute position percentages on element coordinates bounding click matrix
-        window.markCoordinates = function(event) {
-            const bounds = event.currentTarget.getBoundingClientRect();
-            const clickX = event.clientX - bounds.left;
-            const clickY = event.clientY - bounds.top;
-
-            selectedPctX = (clickX / bounds.width) * 100;
-            selectedPctY = (clickY / bounds.height) * 100;
-
-            const dot = document.getElementById('targetMarkerDot');
-            dot.style.left = `${selectedPctX}%`;
-            dot.style.top = `${selectedPctY}%`;
-        };
-
-        async function uploadProductToShop() {
-            const title = document.getElementById('prodTitle').value.trim();
-            const price = document.getElementById('prodPrice').value.trim();
-            const category = document.getElementById('prodCategory').value;
-            const btn = document.getElementById('uploadBtn');
-
-            if (!title || !price || !activeBase64String) {
-                alert("Please fill all inputs and click on image position coordinates!");
+            if (snapshot.empty) {
+                container.innerHTML = `<tr><td colspan="5" class="text-center p-8 text-gray-400">No active orders found inside cloud clusters metadata nodes.</td></tr>`;
                 return;
             }
 
-            btn.innerText = "Publishing to Cloud...";
-            btn.disabled = true;
+            snapshot.forEach((docNode) => {
+                const id = docNode.id;
+                const data = docNode.data();
+                masterOrdersLocalCache.push({ documentDocId: id, ...data });
+            });
 
-            try {
-                await addDoc(collection(db, "products"), {
-                    title: title,
-                    price: Number(price),
-                    category: category,
-                    imageUrl: activeBase64String,
-                    posX: selectedPctX, // Coordinate system integration keys
-                    posY: selectedPctY
-                });
+            renderTableRows(masterOrdersLocalCache);
+        });
 
-                alert(`Success! "${title}" is now live.`);
-                location.reload();
-            } catch (err) {
-                alert("Upload process faulted!");
-                btn.innerText = "Publish Item Live"; btn.disabled = false;
-            }
+        // Renders table rows cleanly with full Janam Kundli specs
+        function renderTableRows(ordersArray) {
+            const container = document.getElementById('adminOrderRowsContainer');
+            container.innerHTML = "";
+
+            ordersArray.forEach((order) => {
+                let statusBadgeColor = "bg-amber-50 text-amber-600 border-amber-200";
+                if(order.status === "Approved") statusBadgeColor = "bg-green-50 text-green-600 border-green-200";
+                if(order.status === "Rejected") statusBadgeColor = "bg-red-50 text-red-600 border-red-200";
+
+                // Mapping values safely, adding fallbacks if older records lack fields
+                const phone = order.phone || "N/A";
+                const college = order.college || "N/A";
+                const className = order.class || "N/A";
+                const section = order.section || "N/A";
+                const rollNo = order.rollNumber || "N/A";
+                const address = order.address || "N/A";
+
+                container.innerHTML += `
+                    <tr class="hover:bg-gray-50/50 transition-colors order-table-data-row" data-name="${String(order.name).toLowerCase()}" data-utr="${String(order.utr).toLowerCase()}">
+                        <td class="p-3 whitespace-nowrap">
+                            <div class="font-extrabold text-gray-900">${order.item}</div>
+                            <div class="text-[10px] text-gray-400 font-mono mt-0.5">ID: ${order.orderId}</div>
+                        </td>
+                        <td class="p-3">
+                            <div class="font-bold text-blue-600 text-[13px]">${order.name}</div>
+                            <div class="text-[11px] font-medium text-gray-600 mt-0.5">📞 Ph: ${phone}</div>
+                            <div class="text-[10px] text-gray-400 mt-0.5">🏛️ ${college}</div>
+                        </td>
+                        <td class="p-3">
+                            <div class="font-semibold text-gray-700">Class: ${className} | Sec: ${section}</div>
+                            <div class="text-[10px] text-gray-400 font-mono mt-0.5">Roll No: ${rollNo}</div>
+                            <div class="text-[11px] text-gray-500 font-medium max-w-xs mt-1 bg-gray-50 p-1.5 rounded border border-gray-100 break-words">📍 ${address}</div>
+                        </td>
+                        <td class="p-3 whitespace-nowrap">
+                            <div class="font-black text-gray-900 text-sm">₹${order.amount} <span class="text-[10px] font-normal text-gray-400">(${order.quantity} pgs)</span></div>
+                            <div class="text-[11px] font-mono font-bold text-purple-700 mt-1 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-100">UTR: ${order.utr}</div>
+                            <div class="mt-1.5"><span class="text-[9px] font-bold px-1.5 py-0.5 rounded border ${statusBadgeColor}">${order.status}</span></div>
+                        </td>
+                        <td class="p-3 text-right whitespace-nowrap">
+                            <div class="flex justify-end gap-1.5">
+                                <button onclick="window.updateOrderStatusState('${order.documentDocId}', 'Approved')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black px-2.5 py-1.5 rounded shadow-xs uppercase tracking-wider cursor-pointer transition-all">Approve</button>
+                                <button onclick="window.updateOrderStatusState('${order.documentDocId}', 'Rejected')" class="bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-black px-2.5 py-1.5 rounded shadow-xs uppercase tracking-wider cursor-pointer transition-all">Reject</button>
+                            </div>
+                            <div class="mt-2">
+                                <a href="${order.downloadUrl}" target="_blank" class="text-[10px] text-gray-400 hover:text-blue-600 font-bold underline transition-colors">View Master File 🖼️</a>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
         }
-        window.uploadProductToShop = uploadProductToShop;
+
+        // Live status updates operational engine logic
+        window.updateOrderStatusState = async function(docId, targetStatus) {
+            if(!confirm(`Are you sure you want to mark this order as ${targetStatus}?`)) return;
+            try {
+                const docRef = doc(db, "orders", docId);
+                await updateDoc(docRef, { status: targetStatus });
+                alert(`Order marked as ${targetStatus} successfully!`);
+            } catch(err) {
+                alert("Operation failed: " + err.message);
+            }
+        };
+
+        // EXCEL SHEET EXPORT ENGINE INTERFACE
+        window.exportToExcelSheet = function() {
+            if(masterOrdersLocalCache.length === 0) { alert("No structured order data available to export!"); return; }
+            
+            // Format array to structured Excel columns mapping cleanly
+            const excelRows = masterOrdersLocalCache.map(order => ({
+                "Order ID": order.orderId || "N/A",
+                "Student Name": order.name || "N/A",
+                "WhatsApp Number": order.phone || "N/A",
+                "School/College": order.college || "N/A",
+                "Class": order.class || "N/A",
+                "Section": order.section || "N/A",
+                "Roll Number": order.rollNumber || "N/A",
+                "Full Delivery Address": order.address || "N/A",
+                "Document Package": order.item || "N/A",
+                "Pages Count": order.quantity || 0,
+                "Net Total Amount (₹)": order.amount || 0,
+                "Transaction UTR": order.utr || "N/A",
+                "Order Status": order.status || "Pending",
+                "Submission Timestamp": order.timestamp || "N/A"
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(excelRows);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "FWS Orders Log");
+            
+            // Generate date string for unique file naming
+            const dateStr = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(workbook, `FWS_Master_Orders_${dateStr}.xlsx`);
+        };
+
+        // GALI SEARCH REAL-TIME OFFLINE CONTROLLER ENGINE
+        window.filterLiveOrders = function() {
+            const queryText = document.getElementById('adminSearchField').value.trim().toLowerCase();
+            const allRows = document.querySelectorAll('.order-table-data-row');
+
+            allRows.forEach((row) => {
+                const name = row.getAttribute('data-name') || "";
+                const utr = row.getAttribute('data-utr') || "";
+                
+                if(name.includes(queryText) || utr.includes(queryText)) {
+                    row.classList.remove('hidden');
+                } else {
+                    row.classList.add('hidden');
+                }
+            });
+        };
     </script>
 </body>
 </html>
