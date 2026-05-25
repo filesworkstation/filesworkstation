@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Dashboard - File Work Station</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        /* Hidden layout frame specific for high quality PDF printing generation */
+        @media print {
+            body * { display: none !important; }
+            #pdfPrintPreviewArea, #pdfPrintPreviewArea * { display: block !important; }
+            #pdfPrintPreviewArea { position: absolute; left: 0; top: 0; width: 100%; height: 100%; margin: 0; padding: 0; }
+        }
+    </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans min-h-screen">
 
@@ -22,6 +30,8 @@
             </div>
         </div>
     </div>
+
+    <div id="pdfPrintPreviewArea" class="hidden"></div>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -42,17 +52,22 @@
         const myOrderIds = JSON.parse(localStorage.getItem('myFwsOrders')) || [];
         const container = document.getElementById('studentDashboardBox');
 
-        // Force image download injector to bypass mobile browser raw base64 link blocks
-        window.triggerFileDownload = function(base64Data, filename) {
+        // Foolproof PDF Engine: Generates print stream matrix from base64 canvas stream
+        window.downloadAsPDF = function(base64Data, orderTitle, studentName) {
             try {
-                const linkAnchor = document.createElement('a');
-                linkAnchor.href = base64Data;
-                linkAnchor.download = filename || 'customized-practical-sheet.jpg';
-                document.body.appendChild(linkAnchor);
-                linkAnchor.click();
-                document.body.removeChild(linkAnchor);
+                const printContainer = document.getElementById('pdfPrintPreviewArea');
+                printContainer.innerHTML = `
+                    <div style="width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center; background: white; margin: 0; padding: 0;">
+                        <img src="${base64Data}" style="width: 100%; max-height: 100%; object-fit: contain; page-break-after: always;" />
+                    </div>
+                `;
+                // Brief absolute timeout to let the DOM stream render image components
+                setTimeout(() => {
+                    window.print();
+                    printContainer.innerHTML = "";
+                }, 500);
             } catch (err) {
-                alert("Error triggering download pipeline on this browser session.");
+                alert("Failed to compile vector structures into native PDF stream.");
             }
         };
 
@@ -81,8 +96,8 @@
                     // Live state status evaluations mapping
                     if (order.status === "Approved") {
                         badgeStyle = "bg-green-50 text-green-600 border-green-200";
-                        // Fixed: Calls injected function to force-download file as clean image instead of opening raw text url string
-                        actionBtn = `<button onclick="window.triggerFileDownload('${order.downloadUrl}', '${order.orderId}.jpg')" class="bg-blue-600 hover:bg-blue-700 text-center text-white font-bold text-[10px] px-4 py-2 rounded-lg transition-all block shadow-sm shadow-blue-200 cursor-pointer">Download Ready File</button>`;
+                        // Calls injected PDF builder compiler to stream layout vectors directly to mobile system printer container
+                        actionBtn = `<button onclick="window.downloadAsPDF('${order.downloadUrl}', '${order.item}', '${order.name}')" class="bg-blue-600 hover:bg-blue-700 text-center text-white font-bold text-[10px] px-4 py-2 rounded-lg transition-all block shadow-sm shadow-blue-200 cursor-pointer">Download PDF File</button>`;
                     } else if (order.status === "Rejected") {
                         badgeStyle = "bg-red-50 text-red-600 border-red-200";
                         actionBtn = `<span class="text-xs font-bold text-red-500 bg-red-50 border border-red-100 px-2 py-1 rounded">UTR Declined / Fraud</span>`;
