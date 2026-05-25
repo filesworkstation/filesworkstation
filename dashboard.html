@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Dashboard - File Work Station</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans min-h-screen">
 
@@ -23,8 +22,6 @@
             </div>
         </div>
     </div>
-
-    <div id="html2pdfSandbox" style="position: absolute; left: -9999px; top: -9999px;"></div>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -45,49 +42,23 @@
         const myOrderIds = JSON.parse(localStorage.getItem('myFwsOrders')) || [];
         const container = document.getElementById('studentDashboardBox');
 
-        // FIXED PDF ENGINE: Waits for the image to fully load before generating PDF
-        window.downloadAsPDF = function(base64Data, orderId) {
-            const sandbox = document.getElementById('html2pdfSandbox');
-            
-            // Creating image element dynamically
-            const imgElement = document.createElement('img');
-            imgElement.src = base64Data;
-            imgElement.style.width = "100%";
-            imgElement.style.height = "100%";
-            imgElement.style.objectFit = "contain";
-
-            // Injecting inside container with exact A4 vector matrix layout
-            sandbox.innerHTML = "";
-            const wrapperDiv = document.createElement('div');
-            wrapperDiv.style.width = "595px";
-            wrapperDiv.style.height = "842px";
-            wrapperDiv.style.display = "flex";
-            wrapperDiv.style.justifyContent = "center";
-            wrapperDiv.style.alignItems = "center";
-            wrapperDiv.style.backgroundColor = "#ffffff";
-            
-            wrapperDiv.appendChild(imgElement);
-            sandbox.appendChild(wrapperDiv);
-
-            const pdfOptions = {
-                margin: 0,
-                filename: `FWS-Order-${orderId}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, logging: false },
-                jsPDF: { unit: 'pt', format: 'a4', orientation: 'portrait' }
-            };
-
-            // CRITICAL FIX: Trigger PDF generation ONLY after image is 100% loaded in DOM cache
-            imgElement.onload = function() {
-                // Short 300ms fallback timeout for slower devices to prevent blank renders
-                setTimeout(() => {
-                    html2pdf().set(pdfOptions).from(sandbox).save().then(() => {
-                        sandbox.innerHTML = ""; // Flushes storage sandbox cache strings
-                    }).catch((err) => {
-                        alert("Error during PDF document generation.");
-                    });
-                }, 300);
-            };
+        // Clean blob proxy to download cloud file URLs without opening blank raw screens
+        window.triggerCloudDownload = async function(url, orderId) {
+            try {
+                const response = await fetch(url);
+                const blob = await response.blob();
+                const objectUrl = URL.createObjectURL(blob);
+                
+                const link = document.createElement('a');
+                link.href = objectUrl;
+                link.download = `FWS-File-${orderId}.jpg`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(objectUrl);
+            } catch (err) {
+                window.open(url, '_blank'); 
+            }
         };
 
         if (myOrderIds.length === 0) {
@@ -115,7 +86,8 @@
                     // Live state status evaluations mapping
                     if (order.status === "Approved") {
                         badgeStyle = "bg-green-50 text-green-600 border-green-200";
-                        actionBtn = `<button onclick="window.downloadAsPDF('${order.downloadUrl}', '${order.orderId}')" class="bg-blue-600 hover:bg-blue-700 text-center text-white font-bold text-[10px] px-4 py-2 rounded-lg transition-all block shadow-sm shadow-blue-200 cursor-pointer">Download PDF File</button>`;
+                        // Kept your exact button style & transition specs, just updated the action mapping to use cloud download
+                        actionBtn = `<button onclick="window.triggerCloudDownload('${order.downloadUrl}', '${order.orderId}')" class="bg-blue-600 hover:bg-blue-700 text-center text-white font-bold text-[10px] px-4 py-2 rounded-lg transition-all block shadow-sm shadow-blue-200 cursor-pointer w-full sm:w-auto">Download Ready File</button>`;
                     } else if (order.status === "Rejected") {
                         badgeStyle = "bg-red-50 text-red-600 border-red-200";
                         actionBtn = `<span class="text-xs font-bold text-red-500 bg-red-50 border border-red-100 px-2 py-1 rounded">UTR Declined / Fraud</span>`;
