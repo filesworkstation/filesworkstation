@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - File Work Station</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans min-h-screen">
 
@@ -15,9 +14,7 @@
             <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wider block mt-1">Live Order Management Panel</span>
         </div>
         <div class="flex gap-2">
-            <button onclick="window.exportToExcelSheet()" class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-3 py-2 rounded-lg shadow-sm transition-all flex items-center gap-1 cursor-pointer">
-                📊 Export All Sales to Excel
-            </button>
+            <a href="sales.html" class="text-xs font-bold text-white bg-green-600 hover:bg-green-700 px-3 py-2 rounded-lg transition-all shadow-sm">📊 Open Sales Sheet →</a>
             <a href="index.html" class="text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg transition-all">Go to Shop →</a>
         </div>
     </nav>
@@ -33,7 +30,7 @@
                 </div>
                 <div>
                     <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">🏷️ Select Material Category</label>
-                    <select id="newProdCategory" class="w-full bg-gray-50 border rounded-lg p-2 text-xs focus:outline-none focus:border-blue-600 font-bold text-gray-700">
+                    <select id="newProdCategory" onchange="window.evaluateCategoryPricingFieldsToggle()" class="w-full bg-gray-50 border rounded-lg p-2 text-xs focus:outline-none focus:border-blue-600 font-bold text-gray-700">
                         <option value="Practical File" selected>📚 Practical File Sheets</option>
                         <option value="Holiday Homework">🎉 Holiday Homework File</option>
                         <option value="Project File">📁 Academic Project File</option>
@@ -44,11 +41,11 @@
                         <option value="PYQs Materials">📊 Previous Years Questions (PYQ)</option>
                     </select>
                 </div>
-                <div>
+                <div id="totalPagesInputWrapper">
                     <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">📄 Total Pages In File (1 to 200)</label>
                     <input type="number" id="newProdTotalPages" value="1" min="1" max="500" class="w-full bg-gray-50 border rounded-lg p-2 text-xs focus:outline-none focus:border-blue-600 font-bold">
                 </div>
-                <div>
+                <div id="priceInputWrapper">
                     <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">💰 Price Per Page / Full Book (₹)</label>
                     <input type="number" id="newProdPrice" placeholder="e.g., 20" class="w-full bg-gray-50 border rounded-lg p-2 text-xs focus:outline-none focus:border-blue-600 font-bold">
                 </div>
@@ -74,15 +71,15 @@
 
         <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-xs mb-4">
             <div class="flex justify-between items-center mb-2">
-                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">🔍 Gali Search Engine Filter (Active Pending Stack Only)</p>
-                <span class="bg-amber-100 text-amber-700 font-black text-[9px] px-2 py-0.5 rounded border border-amber-200 uppercase tracking-wide">Action Log Buffer Active</span>
+                <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">🔍 Live Pending Orders Queue (All processed items route straight into sales.html)</p>
+                <span class="bg-amber-100 text-amber-700 font-black text-[9px] px-2 py-0.5 rounded border border-amber-200 uppercase tracking-wide">Action Stack Live</span>
             </div>
-            <input type="text" id="adminSearchField" oninput="window.filterLiveOrders()" placeholder="Search active queues by Student Name or 12-Digit UTR Number..." class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs focus:outline-none focus:border-blue-600 font-semibold">
+            <input type="text" id="adminSearchField" oninput="window.filterLiveOrders()" placeholder="Search active queues by Student Name or UTR..." class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs focus:outline-none focus:border-blue-600 font-semibold">
         </div>
 
         <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
             <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse" id="ordersMasterTable">
+                <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-gray-50 border-b border-gray-200 text-[10px] font-black text-gray-400 uppercase tracking-wider">
                             <th class="p-3">Order Specs</th>
@@ -93,9 +90,7 @@
                         </tr>
                     </thead>
                     <tbody id="adminOrderRowsContainer" class="divide-y divide-gray-100 text-xs">
-                        <tr id="initialAdminLoadingState">
-                            <td colspan="5" class="text-center p-8 text-gray-400 text-xs">Streaming active databases pipelines securely from Firebase...</td>
-                        </tr>
+                        <tr><td colspan="5" class="text-center p-6 text-gray-400 text-xs">Streaming pending dynamic pipeline...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -117,7 +112,22 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        let masterOrdersLocalCache = []; 
+        // DYNAMIC VISIBILITY SWITCH ENGINE LOGIC BLOCK
+        window.evaluateCategoryPricingFieldsToggle = function() {
+            const currentSelectedCategory = document.getElementById('newProdCategory').value;
+            const totalPagesWrapperNode = document.getElementById('totalPagesInputWrapper');
+            const priceWrapperNode = document.getElementById('priceInputWrapper');
+
+            if(currentSelectedCategory === "NCERT Books" || currentSelectedCategory === "Coaching Notes" || currentSelectedCategory === "PYQs Materials") {
+                // Instantly hides fields from screen view space area parameters
+                totalPagesWrapperNode.classList.add('hidden');
+                priceWrapperNode.classList.add('hidden');
+            } else {
+                // Re-shows parameters block structure smoothly
+                totalPagesWrapperNode.classList.remove('hidden');
+                priceWrapperNode.classList.remove('hidden');
+            }
+        };
 
         function convertFileToBase64(fileNode) {
             return new Promise((resolve, reject) => {
@@ -141,16 +151,29 @@
         window.uploadNewMaterialToShop = async function() {
             const title = document.getElementById('newProdTitle').value.trim();
             const category = document.getElementById('newProdCategory').value;
-            const filePages = parseInt(document.getElementById('newProdTotalPages').value) || 1;
-            const price = parseFloat(document.getElementById('newProdPrice').value);
             
             const imageInput = document.getElementById('newProdImageFile');
             const driveLinkInput = document.getElementById('newProdDriveLink').value.trim();
 
-            // FIXED SWITCH ENGINE: Removed rigid restriction validation mapping for drive link box parameters
-            if(!title || isNaN(price) || imageInput.files.length === 0) {
-                alert("Please complete Title, Price, and select a Catalog Thumb Image!");
-                return;
+            // Automatic bypass logic evaluations values
+            let filePages = 1;
+            let price = 0;
+
+            const isFreeCategoryFlag = (category === "NCERT Books" || category === "Coaching Notes" || category === "PYQs Materials");
+
+            if(!isFreeCategoryFlag) {
+                filePages = parseInt(document.getElementById('newProdTotalPages').value) || 1;
+                price = parseFloat(document.getElementById('newProdPrice').value);
+                
+                if(!title || isNaN(price) || imageInput.files.length === 0) {
+                    alert("Please complete Title, Price, and select a Catalog Thumb Image!");
+                    return;
+                }
+            } else {
+                if(!title || imageInput.files.length === 0 || !driveLinkInput) {
+                    alert("Please complete Title, select Thumb Image, and paste the Google Drive Link for this FREE asset material!");
+                    return;
+                }
             }
 
             const btn = document.getElementById('uploadMaterialBtn');
@@ -160,15 +183,13 @@
             try {
                 const imageFileObj = imageInput.files[0];
                 const base64CoverThumbString = await convertFileToBase64(imageFileObj);
-                
-                // If input link is present, structure embed path; else write blank safe string index mapping
                 const normalizedEmbedPdfUrl = driveLinkInput ? generateGoogleDriveEmbedUrl(driveLinkInput) : "";
 
                 await addDoc(collection(db, "products"), {
-                    title: `[${category}] ${title} (${filePages} Pages)`,
-                    price: price,
+                    title: isFreeCategoryFlag ? `[${category}] ${title} (FREE BOOK)` : `[${category}] ${title} (${filePages} Pages)`,
+                    price: price, // Writes flat 0 values automatically into database records fields
                     imageUrl: base64CoverThumbString, 
-                    documentUrl: normalizedEmbedPdfUrl, // Dual support variable proxy mapping active
+                    documentUrl: normalizedEmbedPdfUrl, 
                     placement: "center",
                     category: category,
                     totalPages: filePages,
@@ -181,6 +202,9 @@
                 document.getElementById('newProdTotalPages').value = "1";
                 document.getElementById('newProdDriveLink').value = "";
                 imageInput.value = "";
+                
+                // Reset toggles view safely
+                window.evaluateCategoryPricingFieldsToggle();
             } catch (err) {
                 alert("Cloud transmission failed: " + err.message);
             } finally {
@@ -190,102 +214,67 @@
         };
 
         onSnapshot(collection(db, "orders"), (snapshot) => {
-            masterOrdersLocalCache = [];
-            const container = document.getElementById('adminOrderRowsContainer');
-            container.innerHTML = "";
+            const pendingContainer = document.getElementById('adminOrderRowsContainer');
+            pendingContainer.innerHTML = "";
             
             if (snapshot.empty) {
-                container.innerHTML = `<tr><td colspan="5" class="text-center p-8 text-gray-400">No active orders found inside cloud collection blocks.</td></tr>`;
+                pendingContainer.innerHTML = `<tr><td colspan="5" class="text-center p-6 text-gray-400">✨ All caught up! No active pending logs left to process.</td></tr>`;
                 return;
             }
-            
+
+            let pendingCount = 0;
+
             snapshot.forEach((docNode) => {
-                masterOrdersLocalCache.push({ documentDocId: docNode.id, ...docNode.data() });
+                const order = docNode.data();
+                const docId = docNode.id;
+                
+                let realValidMasterLink = order.downloadUrl || "#";
+
+                if (order.status === "Pending" || !order.status) {
+                    pendingCount++;
+                    pendingContainer.innerHTML += `
+                        <tr class="hover:bg-gray-50/50 transition-colors order-table-data-row" data-name="${String(order.name).toLowerCase()}" data-utr="${String(order.utr).toLowerCase()}">
+                            <td class="p-3 whitespace-nowrap">
+                                <div class="font-extrabold text-gray-900">${order.item}</div>
+                                <div class="text-[10px] text-gray-400 font-mono mt-0.5">ID: ${order.orderId}</div>
+                            </td>
+                            <td class="p-3">
+                                <div class="font-bold text-blue-600 text-[13px]">${order.name}</div>
+                                <div class="text-[11px] font-medium text-gray-600 mt-0.5">📞 Ph: ${order.phone || "N/A"}</div>
+                                <div class="text-[10px] text-gray-400 mt-0.5">🏛️ ${order.college || "N/A"}</div>
+                            </td>
+                            <td class="p-3">
+                                <div class="font-semibold text-gray-700">Class: ${order.class || "N/A"} | Sec: ${order.section || "N/A"}</div>
+                                <div class="text-[10px] text-gray-400 font-mono mt-0.5">Roll No: ${order.rollNumber || "N/A"}</div>
+                                <div class="text-[11px] text-gray-500 font-medium max-w-xs mt-1 bg-gray-50 p-1.5 rounded border border-gray-100 break-words">📍 ${order.address || "N/A"}</div>
+                            </td>
+                            <td class="p-3 whitespace-nowrap">
+                                <div class="font-black text-gray-900 text-sm">₹${order.amount} <span class="text-[10px] font-normal text-gray-400">(${order.quantity} pgs)</span></div>
+                                <div class="text-[11px] font-mono font-bold text-purple-700 mt-1 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-100">UTR: ${order.utr}</div>
+                            </td>
+                            <td class="p-3 text-right whitespace-nowrap">
+                                <div class="flex justify-end gap-1.5">
+                                    <button onclick="window.updateOrderStatusState('${docId}', 'Approved')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black px-2.5 py-1.5 rounded shadow-xs uppercase tracking-wider cursor-pointer transition-all">Approve</button>
+                                    <button onclick="window.updateOrderStatusState('${docId}', 'Rejected')" class="bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-black px-2.5 py-1.5 rounded shadow-xs uppercase tracking-wider cursor-pointer transition-all">Reject</button>
+                                </div>
+                                <div class="mt-2">
+                                    <a href="${realValidMasterLink}" target="_blank" class="text-[10px] text-blue-600 hover:underline font-black tracking-wide">View Master File 🖼️</a>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }
             });
-            
-            const pendingOrdersQueueStack = masterOrdersLocalCache.filter(order => order.status === "Pending" || !order.status);
-            renderTableRows(pendingOrdersQueueStack);
+
+            if(pendingCount === 0) pendingContainer.innerHTML = `<tr><td colspan="5" class="text-center p-8 text-gray-500 font-bold">✨ All caught up! No active pending logs left to process.</td></tr>`;
         });
 
-        function renderTableRows(ordersArray) {
-            const container = document.getElementById('adminOrderRowsContainer');
-            container.innerHTML = "";
-            
-            if(ordersArray.length === 0) {
-                container.innerHTML = `<tr><td colspan="5" class="text-center p-8 text-gray-500 font-bold">✨ All caught up! No active pending logs left to process.</td></tr>`;
-                return;
-            }
-
-            ordersArray.forEach((order) => {
-                let statusBadgeColor = "bg-amber-50 text-amber-600 border-amber-200";
-                
-                container.innerHTML += `
-                    <tr class="hover:bg-gray-50/50 transition-colors order-table-data-row" data-name="${String(order.name).toLowerCase()}" data-utr="${String(order.utr).toLowerCase()}">
-                        <td class="p-3 whitespace-nowrap">
-                            <div class="font-extrabold text-gray-900">${order.item}</div>
-                            <div class="text-[10px] text-gray-400 font-mono mt-0.5">ID: ${order.orderId}</div>
-                        </td>
-                        <td class="p-3">
-                            <div class="font-bold text-blue-600 text-[13px]">${order.name}</div>
-                            <div class="text-[11px] font-medium text-gray-600 mt-0.5">📞 Ph: ${order.phone || "N/A"}</div>
-                            <div class="text-[10px] text-gray-400 mt-0.5">🏛️ ${order.college || "N/A"}</div>
-                        </td>
-                        <td class="p-3">
-                            <div class="font-semibold text-gray-700">Class: ${order.class || "N/A"} | Sec: ${order.section || "N/A"}</div>
-                            <div class="text-[10px] text-gray-400 font-mono mt-0.5">Roll No: ${order.rollNumber || "N/A"}</div>
-                            <div class="text-[11px] text-gray-500 font-medium max-w-xs mt-1 bg-gray-50 p-1.5 rounded border border-gray-100 break-words">📍 ${order.address || "N/A"}</div>
-                        </td>
-                        <td class="p-3 whitespace-nowrap">
-                            <div class="font-black text-gray-900 text-sm">₹${order.amount} <span class="text-[10px] font-normal text-gray-400">(${order.quantity} pgs)</span></div>
-                            <div class="text-[11px] font-mono font-bold text-purple-700 mt-1 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-100">UTR: ${order.utr}</div>
-                            <div class="mt-1.5"><span class="text-[9px] font-bold px-1.5 py-0.5 rounded border ${statusBadgeColor}">${order.status || 'Pending'}</span></div>
-                        </td>
-                        <td class="p-3 text-right whitespace-nowrap">
-                            <div class="flex justify-end gap-1.5">
-                                <button onclick="window.updateOrderStatusState('${order.documentDocId}', 'Approved')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-black px-2.5 py-1.5 rounded shadow-xs uppercase tracking-wider cursor-pointer transition-all">Approve</button>
-                                <button onclick="window.updateOrderStatusState('${order.documentDocId}', 'Rejected')" class="bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-black px-2.5 py-1.5 rounded shadow-xs uppercase tracking-wider cursor-pointer transition-all">Reject</button>
-                            </div>
-                            <div class="mt-2">
-                                <a href="${order.downloadUrl}" target="_blank" class="text-[10px] text-blue-600 hover:underline font-black tracking-wide">View Master File 🖼️</a>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            });
-        }
-
         window.updateOrderStatusState = async function(docId, targetStatus) {
-            if(!confirm(`Are you sure you want to mark this order as ${targetStatus}? It will be archived straight into your master Excel Sheet!`)) return;
+            if(!confirm(`Are you sure you want to mark this order as ${targetStatus}? It will instantly leave this screen and save inside sales.html`)) return;
             try {
                 await updateDoc(doc(db, "orders", docId), { status: targetStatus });
-                alert(`Order marked as ${targetStatus} successfully! Screen cleared.`);
+                alert(`Order marked as ${targetStatus}! Sent straight to Sales Sheet.`);
             } catch(err) { alert("Operation failed: " + err.message); }
-        };
-
-        window.exportToExcelSheet = function() {
-            if(masterOrdersLocalCache.length === 0) { alert("No transaction data available to compile!"); return; }
-            
-            const excelRows = masterOrdersLocalCache.map(order => ({ 
-                "Order ID": order.orderId || "N/A", 
-                "Student Name": order.name || "N/A", 
-                "WhatsApp Number": order.phone || "N/A", 
-                "School/College": order.college || "N/A", 
-                "Class": order.class || "N/A", 
-                "Section": order.section || "N/A", 
-                "Roll Number": order.rollNumber || "N/A", 
-                "Full Delivery Address": order.address || "N/A", 
-                "Document Package": order.item || "N/A", 
-                "Pages Count": order.quantity || 0, 
-                "Net Total Amount (₹)": order.amount || 0, 
-                "Transaction UTR": order.utr || "N/A", 
-                "Order Status": order.status || "Pending", 
-                "Submission Timestamp": order.timestamp || "N/A" 
-            }));
-            
-            const worksheet = XLSX.utils.json_to_sheet(excelRows); 
-            const workbook = XLSX.utils.book_new(); 
-            XLSX.utils.book_append_sheet(workbook, worksheet, "FWS Master Sales Log");
-            XLSX.writeFile(workbook, `FWS_Total_Sales_Report_${new Date().toISOString().split('T')[0]}.xlsx`);
         };
 
         window.filterLiveOrders = function() {
