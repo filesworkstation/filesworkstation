@@ -61,14 +61,14 @@
             <button onclick="window.switchCategoryFilter('Front Sheet', this)" class="category-filter-btn snap-center shrink-0 bg-white hover:bg-gray-50 text-gray-600 text-[10px] font-bold px-3.5 py-2 rounded-xl border border-gray-200 transition-all cursor-pointer uppercase tracking-wider">
                 ✨ Front Covers
             </button>
-            <button onclick="window.switchCategoryFilter('NCERT Books', this)" class="category-filter-btn snap-center shrink-0 bg-white hover:bg-gray-50 text-gray-600 text-[10px] font-bold px-3.5 py-2 rounded-xl border border-gray-200 transition-all cursor-pointer uppercase tracking-wider">
-                📖 NCERT Solution
+            <button onclick="window.switchCategoryFilter('NCERT Books', this)" class="category-filter-btn snap-center shrink-0 bg-white hover:bg-gray-50 text-emerald-600 text-[10px] font-bold px-3.5 py-2 rounded-xl border border-gray-200 transition-all cursor-pointer uppercase tracking-wider">
+                📖 NCERT Solution (FREE)
             </button>
-            <button onclick="window.switchCategoryFilter('Coaching Notes', this)" class="category-filter-btn snap-center shrink-0 bg-white hover:bg-gray-50 text-gray-600 text-[10px] font-bold px-3.5 py-2 rounded-xl border border-gray-200 transition-all cursor-pointer uppercase tracking-wider">
-                🔥 Premium Notes
+            <button onclick="window.switchCategoryFilter('Coaching Notes', this)" class="category-filter-btn snap-center shrink-0 bg-white hover:bg-gray-50 text-emerald-600 text-[10px] font-bold px-3.5 py-2 rounded-xl border border-gray-200 transition-all cursor-pointer uppercase tracking-wider">
+                🔥 Premium Notes (FREE)
             </button>
-            <button onclick="window.switchCategoryFilter('PYQs Materials', this)" class="category-filter-btn snap-center shrink-0 bg-white hover:bg-gray-50 text-gray-600 text-[10px] font-bold px-3.5 py-2 rounded-xl border border-gray-200 transition-all cursor-pointer uppercase tracking-wider">
-                📊 PYQ Stacks
+            <button onclick="window.switchCategoryFilter('PYQs Materials', this)" class="category-filter-btn snap-center shrink-0 bg-white hover:bg-gray-50 text-emerald-600 text-[10px] font-bold px-3.5 py-2 rounded-xl border border-gray-200 transition-all cursor-pointer uppercase tracking-wider">
+                📊 PYQ Stacks (FREE)
             </button>
         </div>
     </div>
@@ -99,7 +99,7 @@
         const db = getFirestore(app);
         const grid = document.getElementById('dynamicShopGrid');
         
-        let masterProductsLocalCache = []; // Local mirror memory array to prevent refetch delays
+        let masterProductsLocalCache = []; 
         let activeSelectedCategoryStr = "ALL";
 
         onSnapshot(collection(db, "products"), (snapshot) => {
@@ -117,7 +117,6 @@
         function executeRenderingPipeline() {
             grid.innerHTML = "";
             
-            // Filters data matching current active selected chips
             const filteredStackArray = activeSelectedCategoryStr === "ALL" 
                 ? masterProductsLocalCache 
                 : masterProductsLocalCache.filter(prod => prod.category === activeSelectedCategoryStr);
@@ -130,6 +129,22 @@
             filteredStackArray.forEach((prod) => {
                 const textPosition = prod.placement || "center"; 
                 const drivePdfUrlString = prod.documentUrl || ""; 
+                const itemCategory = prod.category || "";
+
+                // SMART CRITERIA CHECKER: Evaluates traffic drivers to toggle monetization labels
+                let priceSectionHTML = `<span class="text-xs font-extrabold text-gray-900">₹${prod.price} <span class="text-[9px] font-normal text-gray-400">/ page</span></span>`;
+                let actionButtonHTML = `
+                    <button onclick="window.openProduct('${prod.title.replace(/'/g, "\\'")}', ${prod.price}, '${prod.imageUrl}', '${textPosition}', '${drivePdfUrlString.replace(/'/g, "\\'")}', '${itemCategory}')" class="w-full bg-gray-950 hover:bg-blue-600 text-white font-bold text-[11px] py-1.5 rounded-lg transition-all cursor-pointer">
+                        Customize & Get File
+                    </button>`;
+
+                if(itemCategory === "NCERT Books" || itemCategory === "Coaching Notes" || itemCategory === "PYQs Materials") {
+                    priceSectionHTML = `<span class="text-xs font-black text-emerald-600 uppercase tracking-wide">🎁 FREE MATERIAL</span>`;
+                    actionButtonHTML = `
+                        <button onclick="window.openProduct('${prod.title.replace(/'/g, "\\'")}', 0, '${prod.imageUrl}', '${textPosition}', '${drivePdfUrlString.replace(/'/g, "\\'")}', '${itemCategory}')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] py-1.5 rounded-lg transition-all cursor-pointer uppercase tracking-wider">
+                            📥 Get Free Download
+                        </button>`;
+                }
 
                 grid.innerHTML += `
                     <div class="product-card bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col justify-between shadow-sm p-3 group">
@@ -140,42 +155,44 @@
                         <div>
                             <h4 class="font-bold text-xs text-gray-900 line-clamp-2 leading-tight mb-1 group-hover:text-blue-600 transition-colors">${prod.title}</h4>
                             <div class="flex justify-between items-baseline mt-2 mb-2">
-                                <span class="text-xs font-extrabold text-gray-900">₹${prod.price} <span class="text-[9px] font-normal text-gray-400">/ page</span></span>
+                                ${priceSectionHTML}
                             </div>
-                            <button onclick="window.openProduct('${prod.title.replace(/'/g, "\\'")}', ${prod.price}, '${prod.imageUrl}', '${textPosition}', '${drivePdfUrlString.replace(/'/g, "\\'")}')" class="w-full bg-gray-950 hover:bg-blue-600 text-white font-bold text-[11px] py-1.5 rounded-lg transition-all">
-                                Customize & Get File
-                            </button>
+                            ${actionButtonHTML}
                         </div>
                     </div>
                 `;
             });
         }
 
-        // MATRIX TRIGGER LOGIC: Changes visuals dynamically based on clicked chips selection
         window.switchCategoryFilter = function(targetCategoryString, buttonElementRef) {
             activeSelectedCategoryStr = targetCategoryString;
             
-            // Reset old buttons to default white styles
             document.querySelectorAll('.category-filter-btn').forEach(btn => {
                 btn.className = "category-filter-btn snap-center shrink-0 bg-white hover:bg-gray-50 text-gray-600 text-[10px] font-bold px-3.5 py-2 rounded-xl border border-gray-200 transition-all cursor-pointer uppercase tracking-wider";
             });
             
-            // Transform only the current active selected button node into solid blue parameters
             buttonElementRef.className = "category-filter-btn snap-center shrink-0 bg-blue-600 text-white text-[10px] font-black px-3.5 py-2 rounded-xl border border-blue-600 transition-all cursor-pointer uppercase tracking-wider shadow-xs";
             
-            // Updates label header text nodes
             const titleNode = document.getElementById('catalogHeaderTitle');
-            titleNode.innerText = targetCategoryString === "ALL" ? "Available Documents" : `${targetCategoryString} Queue Stack`;
+            if(titleNode) {
+                titleNode.innerText = targetCategoryString === "ALL" ? "Available Documents" : `${targetCategoryString} Queue Stack`;
+            }
             
             executeRenderingPipeline();
         };
 
-        function openProduct(title, price, imgString, placement, driveDocUrl) {
+        function openProduct(title, price, imgString, placement, driveDocUrl, category) {
+            let verifiedAssetDestination = driveDocUrl;
+            if(!verifiedAssetDestination || verifiedAssetDestination === "#" || verifiedAssetDestination === "Xyz") {
+                verifiedAssetDestination = imgString || "#";
+            }
+
             localStorage.setItem('selectedTitle', title);
-            localStorage.setItem('selectedPrice', price);
-            localStorage.setItem('deliverableFileUrl', driveDocUrl || imgString); 
+            localStorage.setItem('selectedPrice', price.toString());
+            localStorage.setItem('deliverableFileUrl', verifiedAssetDestination); 
             localStorage.setItem('shopImageUrl', imgString); 
             localStorage.setItem('textPlacement', placement);      
+            localStorage.setItem('selectedCategory', category); // Track the category selection loop node safely 
             window.location.href = 'preview.html'; 
         }
         window.openProduct = openProduct;
