@@ -322,4 +322,84 @@
             document.getElementById('qrcodeWrapper').innerHTML = "";
             qrcodeHandler = new QRCode(document.getElementById("qrcodeWrapper"), { text: upiPayloadUrl, width: 160, height: 160 });
             
-   
+            startPaymentCountdownTimer(); 
+        }
+
+        function startPaymentCountdownTimer() {
+            if(activeTimerInterval) clearInterval(activeTimerInterval);
+            let totalSecondsLeft = 150; 
+            const timerDisplayNode = document.getElementById('liveTimerCountdown');
+            
+            activeTimerInterval = setInterval(() => {
+                let computedMinutes = Math.floor(totalSecondsLeft / 60);
+                let computedSeconds = totalSecondsLeft % 60;
+                let displayMins = computedMinutes < 10 ? "0" + computedMinutes : computedMinutes;
+                let displaySecs = computedSeconds < 10 ? "0" + computedSeconds : computedSeconds;
+                
+                timerDisplayNode.innerText = `${displayMins}:${displaySecs}`;
+                if(totalSecondsLeft <= 0) {
+                    clearInterval(activeTimerInterval);
+                    alert("⏰ Payment Session Expired! Please try again to proceed safely.");
+                    window.location.reload();
+                }
+                totalSecondsLeft--;
+            }, 1000);
+        }
+
+        window.dispatchProof = async function() {
+            const transactionUtr = document.getElementById('utrField').value.trim();
+            if (transactionUtr.length < 6) { alert("Enter valid 12-Digit Transaction UTR number!"); return; }
+            
+            const btn = document.getElementById('submitBtn');
+            btn.innerText = "Processing Your Order... Please Wait";
+            btn.disabled = true;
+            
+            const generatedOrderId = "FWS-" + Math.floor(100000 + Math.random() * 900000);
+            const netTotalAmountCalculated = currentPageCount * basePrice;
+            const currentActualFileUrl = localStorage.getItem('deliverableFileUrl') || "#";
+
+            try {
+                await addDoc(collection(db, "orders"), { 
+                    orderId: generatedOrderId, name: deliveryName, item: currentProductTitle, 
+                    quantity: currentPageCount, amount: netTotalAmountCalculated, 
+                    utr: transactionUtr, status: "Pending", 
+                    downloadUrl: currentActualFileUrl, 
+                    phone: deliveryPhone, college: deliveryCollege, class: deliveryClass,
+                    section: deliverySection, rollNumber: deliveryRollNo, address: deliveryAddress,
+                    timestamp: new Date().toISOString() 
+                });
+
+                if(activeTimerInterval) clearInterval(activeTimerInterval); 
+
+                let userTrackingList = JSON.parse(localStorage.getItem('myFwsOrders')) || [];
+                userTrackingList.push(generatedOrderId); 
+                localStorage.setItem('myFwsOrders', JSON.stringify(userTrackingList));
+                
+                alert(`🎉 Order Placed Successfully!\n\nYour premium customized file order has been registered.`);
+                
+                const waMessageBodyString = `🚨 *NEW ORDER RECEIVED - FILE WORK STATION* 🚨\n\n` +
+                    `📌 *Order Details:* ${currentProductTitle}\n` +
+                    `🔢 *Order ID Ref:* ${generatedOrderId}\n` +
+                    `👤 *Student Name:* ${deliveryName}\n` +
+                    `📞 *WhatsApp Contact:* ${deliveryPhone}\n` +
+                    `🏛️ *School/University:* ${deliveryCollege}\n` +
+                    `🏫 *Class Name Structure:* ${deliveryClass}\n` +
+                    `🔢 *Class Section Node:* ${deliverySection}\n` +
+                    `🆔 *Class Roll Number:* ${deliveryRollNo}\n` +
+                    `📍 *Full Delivery Address:* ${deliveryAddress}\n` +
+                    `💳 *Net Paid Amount:* ₹${netTotalAmountCalculated} (${currentPageCount} pages)\n` +
+                    `🧾 *Transaction UTR Id:* ${transactionUtr}\n\n` +
+                    `*Please process and align my practical/certificate elements vectors manually!*`;
+
+                const formattedWhatsAppGatewayUrl = `https://api.whatsapp.com/send?phone=9457906960&text=${encodeURIComponent(waMessageBodyString)}`;
+                window.location.href = formattedWhatsAppGatewayUrl; 
+
+            } catch (error) { 
+                alert("Database transmission connection failed!"); 
+                btn.innerText = "Submit Order Proof"; 
+                btn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>
