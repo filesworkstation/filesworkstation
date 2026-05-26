@@ -324,4 +324,53 @@
             if (transactionUtr.length < 6) { alert("Enter valid 12-Digit Transaction UTR number!"); return; }
             
             const btn = document.getElementById('submitBtn');
-            btn.innerText = "Processing Your O
+            btn.innerText = "Processing Your Order... Please Wait";
+            btn.disabled = true;
+            
+            const generatedOrderId = "FWS-" + Math.floor(100000 + Math.random() * 900000);
+            const netTotalAmountCalculated = currentPageCount * basePrice;
+
+            try {
+                await addDoc(collection(db, "orders"), { 
+                    orderId: generatedOrderId, name: deliveryName, item: currentProductTitle, 
+                    quantity: currentPageCount, amount: netTotalAmountCalculated, 
+                    utr: transactionUtr, status: "Pending", downloadUrl: localStorage.getItem('deliverableFileUrl') || "#", 
+                    phone: deliveryPhone, college: deliveryCollege, class: deliveryClass,
+                    section: deliverySection, rollNumber: deliveryRollNo, address: deliveryAddress,
+                    timestamp: new Date().toISOString() 
+                });
+
+                if(activeTimerInterval) clearInterval(activeTimerInterval); 
+
+                let userTrackingList = JSON.parse(localStorage.getItem('myFwsOrders')) || [];
+                userTrackingList.push(generatedOrderId); 
+                localStorage.setItem('myFwsOrders', JSON.stringify(userTrackingList));
+                
+                alert(`🎉 Order Placed Successfully!\n\nYour premium customized file order has been registered. Our delivery executive will arrive soon at your destination campus location.`);
+                
+                const waMessageBodyString = `🚨 *NEW ORDER RECEIVED - FILE WORK STATION* 🚨\n\n` +
+                    `📌 *Order Details:* ${currentProductTitle}\n` +
+                    `🔢 *Order ID Ref:* ${generatedOrderId}\n` +
+                    `👤 *Student Name:* ${deliveryName}\n` +
+                    `📞 *WhatsApp Contact:* ${deliveryPhone}\n` +
+                    `🏛️ *School/University:* ${deliveryCollege}\n` +
+                    `🏫 *Class Name Structure:* ${deliveryClass}\n` +
+                    `🔢 *Class Section Node:* ${deliverySection}\n` +
+                    `🆔 *Class Roll Number:* ${deliveryRollNo}\n` +
+                    `📍 *Full Delivery Address:* ${deliveryAddress}\n` +
+                    `💳 *Net Paid Amount:* ₹${netTotalAmountCalculated} (${currentPageCount} pages)\n` +
+                    `🧾 *Transaction UTR Id:* ${transactionUtr}\n\n` +
+                    `*Please process and align my practical/certificate elements vectors manually!*`;
+
+                const formattedWhatsAppGatewayUrl = `https://api.whatsapp.com/send?phone=9457906960&text=${encodeURIComponent(waMessageBodyString)}`;
+                window.location.href = formattedWhatsAppGatewayUrl; 
+
+            } catch (error) { 
+                alert("Database transmission connection failed!"); 
+                btn.innerText = "Submit Order Proof"; 
+                btn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>
