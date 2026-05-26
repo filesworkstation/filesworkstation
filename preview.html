@@ -3,86 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Drag & Pinch Resize - File Work Station</title>
+    <title>Document Viewer - File Work Station</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Courier+Prime:ital,wght@1,700&family=Inter:wght@800&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght=600&family=Courier+Prime:ital,wght=1,700&family=Inter:wght@800&family=Playfair+Display:ital,wght=1,700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        .academic-page-container { width: 100%; max-width: 320px; overflow: auto; display: flex; justify-content: center; padding: 10px; background: #f3f4f6; border-radius: 12px; }
-        .academic-page-wrapper { transition: transform 0.2s ease-out; transform-origin: center center; }
-        .academic-page { aspect-ratio: 1 / 1.414; width: 280px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); position: relative; overflow: hidden; background-color: white; }
-        .draggable-name-tag { position: absolute; cursor: move; touch-action: none; user-select: none; background: transparent; padding: 4px; }
-        .draggable-name-tag:active { outline: 1px dashed rgba(37, 99, 235, 0.4); }
-        .watermark { font-size: 2rem; font-weight: 900; color: rgba(30, 64, 175, 0.02); transform: rotate(-35deg); white-space: nowrap; }
-        .font-classic-serif { font-family: 'Playfair Display', serif; font-style: italic; }
-        .font-modern-sans { font-family: 'Inter', sans-serif; font-weight: 800; }
-        .font-elegant-cursive { font-family: 'Cinzel', serif; }
-        .font-technical-mono { font-family: 'Courier Prime', monospace; font-style: italic; }
+        /* FIXED ENGINE: REMOVED RIGID FIXED BOX CORES TO ALLOW 100% UNIVERSAL SCALING RE-FIT */
+        .academic-page-container { 
+            width: 100% !important; 
+            display: flex; 
+            flex-direction: column;
+            justify-content: center; 
+            padding: 0px !important; /* Stripped out all bad margin block frames */
+            box-sizing: border-box; 
+        }
+        
+        /* THE UNIVERSAL AUTO-FIT MATRIX: ADJUSTS AUTOMATICALLY ACCORDING TO A4, A3, A2 LANDSCAPE/PORTRAIT Ratios */
+        .pdf-iframe-rigid-wrapper {
+            width: 100% !important;
+            min-height: 480px !important;
+            height: auto !important;
+            aspect-ratio: 3 / 4.2 !important; /* Fluid scaling ratio optimized for mobile viewing grids */
+            position: relative !important;
+            border-radius: 12px;
+            overflow: hidden !important;
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            box-sizing: border-box !important;
+        }
+        .pdf-iframe-element-embedded {
+            width: 100% !important;
+            height: 100% !important;
+            border: 0 !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            object-fit: contain !important; /* Forces document internals to stay perfectly packed inside viewport */
+            z-index: 10 !important;
+        }
+        
+        /* PREMIUM BOLD DIAGONAL WATERMARK PROTECTION OVERLAY */
+        .master-locked-watermark { 
+            position: absolute; 
+            inset: 0; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            overflow: hidden; 
+            pointer-events: none; 
+            z-index: 30; 
+            user-select: none;
+        }
+        .bold-watermark-text { 
+            font-size: 1.6rem; 
+            font-weight: 900; 
+            font-family: 'Inter', sans-serif;
+            color: rgba(30, 64, 175, 0.10); 
+            transform: rotate(-35deg); 
+            white-space: nowrap; 
+            letter-spacing: 0.1em;
+        }
+        @keyframes blinker { 50% { opacity: 0.4; } }
+        .timer-blink { animation: blinker 1s linear infinite; }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans min-h-screen">
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen relative">
     <nav class="p-3 border-b border-gray-200 bg-white flex justify-center items-center shadow-sm">
         <h1 class="text-xl font-black tracking-widest text-blue-600">FILE WORK STATION</h1>
     </nav>
     <div class="max-w-6xl mx-auto p-4 grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">
-        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center h-fit">
-            <div class="w-full bg-blue-50 border border-blue-200 rounded-xl p-2.5 mb-3 text-center">
-                <p class="text-[11px] font-bold text-blue-800">🔥 <span class="font-black text-blue-600">Instructions:</span> Use **two fingers** to stretch/pinch and resize! Use **one finger** to move it.</p>
-            </div>
-            <div class="w-full flex justify-between items-center mb-2">
-                <h3 class="text-xs font-black text-gray-400 uppercase tracking-wider">Live Frame Customizer</h3>
-                <button onclick="window.togglePageZoom()" id="zoomBtnIndicator" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-[9px] font-black px-2 py-1 rounded border uppercase tracking-wider transition-all">🔍 Zoom Frame</button>
-            </div>
-            <div class="academic-page-container">
-                <div id="zoomScaler" class="academic-page-wrapper">
-                    <div id="canvasFrame" class="academic-page bg-cover bg-center select-none">
-                        <div class="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none"><div class="watermark">FILE WORK STATION</div></div>
-                        <div id="dragNameBox" class="draggable-name-tag z-30" style="left: 20%; top: 40%;">
-                            <div id="liveStudentName" class="text-[14px] text-blue-800 tracking-wide inline-block whitespace-nowrap pointer-events-none font-classic-serif">Your Name</div>
-                        </div>
-                        <div class="absolute bottom-1 inset-x-0 flex justify-between items-end px-2 text-[6px] text-gray-400 font-bold z-20 pointer-events-none"><span>PREVIEW WATERMARKED</span><span class="text-blue-600">FWS DIGITAL</span></div>
+        
+        <div class="flex flex-col items-center justify-center w-full">
+            <div class="academic-page-container" id="gestureViewportContainer">
+                <div id="canvasFrame" class="pdf-iframe-rigid-wrapper shadow-xs">
+                    <div class="master-locked-watermark">
+                        <div class="bold-watermark-text">FILE WORK STATION</div>
                     </div>
+                    <iframe id="googleDrivePdfPlayer" src="" class="pdf-iframe-element-embedded hidden" allow="autoplay"></iframe>
+                </div>
+                
+                <div class="w-full flex justify-between items-center mt-3 px-1 gap-2">
+                    <button onclick="window.navigateIframePage(-1)" class="flex-1 bg-white hover:bg-gray-100 border border-gray-200 text-gray-700 text-[11px] font-black py-2.5 rounded-xl transition-all shadow-2xs cursor-pointer uppercase tracking-wider">
+                        ◀ Prev Page
+                    </button>
+                    <button onclick="window.navigateIframePage(1)" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-black py-2.5 rounded-xl transition-all shadow-sm cursor-pointer uppercase tracking-wider">
+                        Next Page ▶
+                    </button>
                 </div>
             </div>
         </div>
+
         <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm h-fit">
             <a href="index.html" class="text-xs text-blue-600 font-semibold inline-block mb-3">← Back to Shop</a>
             <h2 id="displayTitle" class="text-sm font-bold text-gray-900 mb-1">Loading Title Frame...</h2>
-            <div class="mb-3 mt-2">
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">✍️ Student Full Name</label>
-                <input type="text" id="studentName" oninput="window.updateLivePreview()" placeholder="Type student name here..." class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs focus:outline-none focus:border-blue-600 font-medium">
-            </div>
-            <div class="grid grid-cols-2 gap-3 mb-3">
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">🎨 Ink Color</label>
-                    <select id="colorSelector" onchange="window.changePreviewColor(this.value)" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs focus:outline-none focus:border-blue-600 font-bold text-gray-700">
-                        <option value="text-blue-800" selected>Royal Blue Ink</option>
-                        <option value="text-gray-900">Classic Black Ink</option>
-                        <option value="text-blue-600">Light Blue Ink</option>
-                        <option value="text-red-600">Instructor Red Ink</option>
-                        <option value="text-green-700">Official Green Ink</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">📏 Backup Size Slider</label>
-                    <div class="flex items-center gap-2 mt-1">
-                        <input type="range" id="textSizeSlider" min="10" max="35" value="14" oninput="window.changePreviewSize(this.value)" class="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
-                        <span id="sliderValDisplay" class="text-[10px] font-bold text-gray-400">14px</span>
-                    </div>
-                </div>
-            </div>
-            <div class="mb-4">
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">🔤 Signature Font Style</label>
-                <select id="fontSelector" onchange="window.changePreviewFont(this.value)" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs focus:outline-none focus:border-blue-600 font-semibold text-gray-700">
-                    <option value="font-classic-serif" selected>Classic Serif (Standard Practical File)</option>
-                    <option value="font-modern-sans">Modern Bold (Cover Sheets)</option>
-                    <option value="font-elegant-cursive">Elegant Roman (Certificates)</option>
-                    <option value="font-technical-mono">Technical Italic (Computer Logs)</option>
-                </select>
-            </div>
-            <div class="mb-5 bg-gray-50 p-4 rounded-xl border border-gray-200">
+            
+            <div class="mb-5 bg-gray-50 p-4 rounded-xl border border-gray-200 mt-4">
                 <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Number of Pages Needed</label>
                 <div class="flex items-center gap-4 mb-3">
                     <button onclick="window.adjustPages(-1)" class="bg-white border px-3 py-1 rounded text-xs font-bold hover:bg-gray-100">-</button>
@@ -91,56 +108,74 @@
                 </div>
                 <div class="flex justify-between border-t pt-2 text-xs font-medium"><span class="text-gray-500">Total Amount:</span><span class="font-bold text-green-600">₹<span id="totalAmount">0</span></span></div>
             </div>
-            <button onclick="window.processPaymentQR()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3 rounded-lg shadow-md uppercase tracking-wider">Generate Specific Amount QR</button>
+            <button onclick="window.processPaymentQR()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3 rounded-lg shadow-md uppercase tracking-wider">Order Now & Pay</button>
         </div>
-        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center justify-center min-h-[300px] h-fit">
-            <div id="qrIdleState" class="text-gray-400 text-center p-4"><p class="text-xs font-medium">Fill details and generate QR to complete your order.</p></div>
+
+        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center justify-center min-h-[300px] h-fit w-full">
+            <div id="qrIdleState" class="text-gray-400 text-center p-4"><p class="text-xs font-medium">Complete delivery specifics to initialize merchant secure transaction flow window.</p></div>
             <div id="qrActiveState" class="hidden w-full flex flex-col items-center">
-                <span class="bg-green-50 text-green-600 text-[10px] font-bold px-2 py-0.5 rounded mb-3 border border-green-200 uppercase">Auto-Amount Locked</span>
+                
+                <div class="w-full bg-amber-50 border border-amber-200 rounded-lg p-2 mb-3 text-center flex justify-center items-center gap-1.5 shadow-2xs">
+                    <span class="text-[10px] font-black text-amber-700 uppercase tracking-wider">Session Expires In:</span>
+                    <span id="liveTimerCountdown" class="text-xs font-black text-amber-600 timer-blink font-mono">02:30</span>
+                </div>
+
                 <div id="qrcodeWrapper" class="p-2 bg-white border rounded-xl mb-3"></div>
                 <p class="text-xs text-gray-500 mb-4">Pay Exactly: <span class="text-gray-900 font-extrabold">₹<span id="qrLockedAmount">0</span></span></p>
                 <div class="w-full border-t pt-4">
                     <p class="text-[11px] text-amber-600 font-semibold mb-2">⚠️ Enter 12-Digit Transaction ID (UTR) after payment:</p>
                     <input type="text" id="utrField" placeholder="Enter UTR Number" class="w-full bg-gray-50 border rounded-lg p-2.5 text-center text-xs focus:outline-none focus:border-blue-600 mb-3">
-                    <button onclick="window.dispatchProof()" class="w-full bg-gray-950 hover:bg-gray-800 text-white font-bold text-xs py-2 rounded-lg uppercase">Submit Order Proof</button>
+                    <button id="submitBtn" onclick="window.dispatchProof()" class="w-full bg-gray-950 hover:bg-gray-800 text-white font-bold text-xs py-2 rounded-lg uppercase">Submit Order Proof</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script type="module">
-        let currentPageCount = 1;
-        let basePrice = parseInt(localStorage.getItem('selectedPrice')) || 5;
-        let currentProductTitle = localStorage.getItem('selectedTitle') || "Custom File Package";
-        let qrcodeHandler = null;
-
-        document.addEventListener("DOMContentLoaded", () => {
-            const currentImgData = localStorage.getItem('deliverableFileUrl') || localStorage.getItem('shopImageUrl');
-            if(currentImgData) { document.getElementById('canvasFrame').style.backgroundImage = `url('${currentImgData}')`; }
-            if (document.getElementById('displayTitle')) { document.getElementById('displayTitle').innerText = currentProductTitle; refreshCalculations(); }
-        });
-
-        window.updateLivePreview = function() {
-            const rawValue = document.getElementById('studentName').value.trim();
-            document.getElementById('liveStudentName').innerText = rawValue.length > 0 ? rawValue : "Your Name";
-        };
-        window.adjustPages = function(modifier) { currentPageCount += modifier; if (currentPageCount < 1) currentPageCount = 1; refreshCalculations(); };
-        function refreshCalculations() { const netSum = currentPageCount * basePrice; document.getElementById('pageCount').innerText = currentPageCount; document.getElementById('totalAmount').innerText = netSum; }
-
-        window.processPaymentQR = function() {
-            const studentNameInput = document.getElementById('studentName').value.trim();
-            if (!studentNameInput) { alert("Please enter the Student Name first!"); return; }
-            const netSum = currentPageCount * basePrice;
-            const upiPayloadUrl = `upi://pay?pa=Adityahard@fam&pn=${encodeURIComponent("File Work Station")}&am=${netSum}&cu=INR`;
-            document.getElementById('qrIdleState').classList.add('hidden');
-            document.getElementById('qrActiveState').classList.remove('hidden');
-            document.getElementById('qrLockedAmount').innerText = netSum;
-            document.getElementById('qrcodeWrapper').innerHTML = "";
-            qrcodeHandler = new QRCode(document.getElementById("qrcodeWrapper"), { text: upiPayloadUrl, width: 160, height: 160 });
-        };
-
+    <div id="deliveryPopupModal" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-sm rounded-xl border border-gray-200 p-5 shadow-xl my-auto">
+            <h3 class="text-xs font-black text-gray-900 uppercase tracking-wider border-b pb-2 mb-3">🚚 Delivery Specifications</h3>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-0.5">✍️ Student Full Name</label>
+                    <input type="text" id="custName" placeholder="Enter full name of student" class="w-full bg-gray-50 border rounded-lg p-2 text-xs font-semibold focus:outline-none focus:border-blue-600">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-0.5">📞 WhatsApp Number</label>
+                    <input type="tel" id="custPhone" placeholder="Enter 10 digit phone number" class="w-full bg-gray-50 border rounded-lg p-2 text-xs font-semibold focus:outline-none focus:border-blue-600">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-0.5">🏛️ School / University / College</label>
+                    <input type="text" id="custCollege" placeholder="e.g. GLA University, Agra College" class="w-full bg-gray-50 border rounded-lg p-2 text-xs focus:outline-none focus:border-blue-600 font-medium">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase mb-0.5">🏫 Class Name</label>
+                        <input type="text" id="custClass" placeholder="e.g. 12th, B.Tech 2nd Year" class="w-full bg-gray-50 border rounded-lg p-2 text-xs focus:outline-none focus:border-blue-600 font-medium">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-gray-400 uppercase mb-0.5">🔢 Class Section</label>
+                        <input type="text" id="custSection" placeholder="e.g. Section A, Sec-3" class="w-full bg-gray-50 border rounded-lg p-2 text-xs focus:outline-none focus:border-blue-600">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-0.5">🆔 Class Roll Number</label>
+                    <input type="text" id="custRollNo" placeholder="Enter university/class roll number" class="w-full bg-gray-50 border rounded-lg p-2 text-xs focus:outline-none focus:border-blue-600 font-mono">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-gray-400 uppercase mb-0.5">📍 Full Delivery Address / Hostel Details</label>
+                    <textarea id="custAddress" rows="2" placeholder="Hostel Name, Room Number, Sector, Landmark specifications..." class="w-full bg-gray-50 border rounded-lg p-2 text-xs focus:outline-none focus:border-blue-600"></textarea>
+                </div>
+            </div>
+            <div class="mt-4 flex gap-2 justify-end border-t pt-3">
+                <button onclick="window.closeDeliveryModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-600 text-[10px] font-bold px-3 py-2 rounded-lg uppercase">Cancel</button>
+                <button onclick="window.submitDeliveryDetails()" class="bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-bold px-4 py-2 rounded-lg uppercase tracking-wider">Confirm Details & Pay →</button>
+            </div>
+        </div>
+    </div>
+        <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
         const firebaseConfig = {
           apiKey: "AIzaSyBC7S5uJd9izO5qOV8W40T7KtNvGEk6oIU",
           authDomain: "filesworkstation-b3074.firebaseapp.com",
@@ -149,88 +184,144 @@
           messagingSenderId: "922394201956",
           appId: "1:922394201956:web:7d18af7a9027103c0ab471"
         };
-        const app = initializeApp(firebaseConfig); const db = getFirestore(app);
+        const app = initializeApp(firebaseConfig); 
+        const db = getFirestore(app);
+
+        let currentPageCount = 1;
+        let basePrice = parseInt(localStorage.getItem('selectedPrice')) || 5;
+        let currentProductTitle = localStorage.getItem('selectedTitle') || "Custom File Package";
+        let qrcodeHandler = null;
+        let activeTimerInterval = null; 
+        
+        let localVirtualPagePointer = 1; 
+
+        let deliveryName = "";
+        let deliveryPhone = "";
+        let deliveryCollege = "";
+        let deliveryClass = "";
+        let deliverySection = "";
+        let deliveryRollNo = "";
+        let deliveryAddress = "";
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const targetDriveDocumentUrl = localStorage.getItem('deliverableFileUrl') || "";
+            const fallbackCardThumbUrl = localStorage.getItem('shopImageUrl') || "";
+            
+            const playerIframeElement = document.getElementById('googleDrivePdfPlayer');
+            const mainContainerCanvas = document.getElementById('canvasFrame');
+            
+            if(targetDriveDocumentUrl && targetDriveDocumentUrl.includes('drive.google.com')) {
+                let cleanEmbedTargetUrl = targetDriveDocumentUrl;
+                if(cleanEmbedTargetUrl.includes('/view')) {
+                    cleanEmbedTargetUrl = cleanEmbedTargetUrl.replace('/view', '/preview');
+                }
+                playerIframeElement.src = cleanEmbedTargetUrl;
+                playerIframeElement.classList.remove('hidden'); 
+            } else {
+                playerIframeElement.classList.add('hidden'); 
+                if(targetDriveDocumentUrl && targetDriveDocumentUrl.startsWith('data:image')) {
+                    mainContainerCanvas.style.backgroundImage = `url('${targetDriveDocumentUrl}')`;
+                    mainContainerCanvas.style.backgroundSize = "contain";
+                    mainContainerCanvas.style.backgroundPosition = "center";
+                    mainContainerCanvas.style.backgroundRepeat = "no-repeat";
+                } else if(fallbackCardThumbUrl) {
+                    mainContainerCanvas.style.backgroundImage = `url('${fallbackCardThumbUrl}')`;
+                    mainContainerCanvas.style.backgroundSize = "contain";
+                    mainContainerCanvas.style.backgroundPosition = "center";
+                    mainContainerCanvas.style.backgroundRepeat = "no-repeat";
+                }
+            }
+            
+            if (document.getElementById('displayTitle')) { document.getElementById('displayTitle').innerText = currentProductTitle; refreshCalculations(); }
+        });
+
+        window.navigateIframePage = function(directionPointer) {
+            const playerIframeElement = document.getElementById('googleDrivePdfPlayer');
+            let baseLinkString = localStorage.getItem('deliverableFileUrl') || "";
+            if(!baseLinkString.includes('drive.google.com')) return; 
+            
+            localVirtualPagePointer += directionPointer;
+            if(localVirtualPagePointer < 1) localVirtualPagePointer = 1;
+            
+            try {
+                let formattedAnchorUrl = baseLinkString;
+                if(formattedAnchorUrl.includes('/view')) { formattedAnchorUrl = formattedAnchorUrl.replace('/view', '/preview'); }
+                if(formattedAnchorUrl.includes('/preview')) { formattedAnchorUrl = formattedAnchorUrl.replace('/preview', ''); }
+                playerIframeElement.src = `${formattedAnchorUrl}/preview?page=${localVirtualPagePointer}`;
+            } catch(e) { console.log(e); }
+        };
+
+        window.adjustPages = function(modifier) { currentPageCount += modifier; if (currentPageCount < 1) currentPageCount = 1; refreshCalculations(); };
+        function refreshCalculations() { const netSum = currentPageCount * basePrice; document.getElementById('pageCount').innerText = currentPageCount; document.getElementById('totalAmount').innerText = netSum; }
+
+        window.closeDeliveryModal = function() { document.getElementById('deliveryPopupModal').classList.add('hidden'); };
+        
+        window.submitDeliveryDetails = function() {
+            const name = document.getElementById('custName').value.trim();
+            const phone = document.getElementById('custPhone').value.trim();
+            const college = document.getElementById('custCollege').value.trim();
+            const classNameVal = document.getElementById('custClass').value.trim();
+            const section = document.getElementById('custSection').value.trim();
+            const rollNo = document.getElementById('custRollNo').value.trim();
+            const address = document.getElementById('custAddress').value.trim();
+
+            if (!name || phone.length < 10 || !college || !classNameVal || !section || !rollNo || !address) { 
+                alert("Please complete all delivery details inputs correctly!"); 
+                return; 
+            }
+            
+            deliveryName = name;
+            deliveryPhone = phone;
+            deliveryCollege = college;
+            deliveryClass = classNameVal;
+            deliverySection = section;
+            deliveryRollNo = rollNo;
+            deliveryAddress = address;
+
+            window.closeDeliveryModal();
+            renderActualLockedQR();
+        };
+
+        window.processPaymentQR = function() {
+            document.getElementById('deliveryPopupModal').classList.remove('hidden');
+        };
+
+        function renderActualLockedQR() {
+            const netSum = currentPageCount * basePrice;
+            const upiPayloadUrl = `upi://pay?pa=Adityahard@fam&pn=${encodeURIComponent("File Work Station")}&am=${netSum}&cu=INR`;
+            document.getElementById('qrIdleState').classList.add('hidden');
+            document.getElementById('qrActiveState').classList.remove('hidden');
+            document.getElementById('qrLockedAmount').innerText = netSum;
+            document.getElementById('qrcodeWrapper').innerHTML = "";
+            qrcodeHandler = new QRCode(document.getElementById("qrcodeWrapper"), { text: upiPayloadUrl, width: 160, height: 160 });
+            
+            startPaymentCountdownTimer(); 
+        }
+
+        function startPaymentCountdownTimer() {
+            if(activeTimerInterval) clearInterval(activeTimerInterval);
+            let totalSecondsLeft = 150; 
+            const timerDisplayNode = document.getElementById('liveTimerCountdown');
+            
+            activeTimerInterval = setInterval(() => {
+                let computedMinutes = Math.floor(totalSecondsLeft / 60);
+                let computedSeconds = totalSecondsLeft % 60;
+                let displayMins = computedMinutes < 10 ? "0" + computedMinutes : computedMinutes;
+                let displaySecs = computedSeconds < 10 ? "0" + computedSeconds : computedSeconds;
+                
+                timerDisplayNode.innerText = `${displayMins}:${displaySecs}`;
+                if(totalSecondsLeft <= 0) {
+                    clearInterval(activeTimerInterval);
+                    alert("⏰ Payment Session Expired! Please try again to proceed safely.");
+                    window.location.reload();
+                }
+                totalSecondsLeft--;
+            }, 1000);
+        }
 
         window.dispatchProof = async function() {
             const transactionUtr = document.getElementById('utrField').value.trim();
-            const studentNameInput = document.getElementById('studentName').value.trim();
-            if (!studentNameInput) { alert("Enter Student Name!"); return; }
-            if (transactionUtr.length < 6) { alert("Enter valid 12-Digit UTR number!"); return; }
-            const generatedOrderId = "FWS-" + Math.floor(100000 + Math.random() * 900000);
-            try {
-                await addDoc(collection(db, "orders"), { orderId: generatedOrderId, name: studentNameInput, item: currentProductTitle, quantity: currentPageCount, amount: (currentPageCount * basePrice), utr: transactionUtr, status: "Pending", downloadUrl: localStorage.getItem('deliverableFileUrl') || "#", timestamp: new Date().toISOString() });
-                let userTrackingList = JSON.parse(localStorage.getItem('myFwsOrders')) || [];
-                userTrackingList.push(generatedOrderId); localStorage.setItem('myFwsOrders', JSON.stringify(userTrackingList));
-                alert("Order Proof Submitted successfully to Firebase Cloud!"); window.location.href = 'dashboard.html';
-            } catch (error) { alert("Database transmission connection error!"); }
-        };
-    </script>
-    <script>
-        let isPageZoomedIn = false;
-        let currentActiveFont = "font-classic-serif";
-        let currentActiveColor = "text-blue-800";
-        let currentFontSizeNum = 14;
-
-        document.addEventListener("DOMContentLoaded", () => { initAdvancedTouchEngine(); });
-        window.togglePageZoom = function() {
-            const wrapper = document.getElementById('zoomScaler'); const indicator = document.getElementById('zoomBtnIndicator');
-            if(!isPageZoomedIn) { wrapper.style.transform = "scale(1.4)"; indicator.innerText = "🔍 Zoomed 1.4x"; indicator.className = "bg-blue-600 text-white text-[9px] font-black px-2 py-1 rounded border uppercase tracking-wider transition-all"; isPageZoomedIn = true; } 
-            else { wrapper.style.transform = "scale(1)"; indicator.innerText = "🔍 Zoom Frame"; indicator.className = "bg-gray-100 text-gray-700 text-[9px] font-black px-2 py-1 rounded border uppercase tracking-wider transition-all"; isPageZoomedIn = false; }
-        };
-        window.changePreviewFont = function(targetFont) { currentActiveFont = targetFont; syncTextStyles(); };
-        window.changePreviewColor = function(targetColor) { currentActiveColor = targetColor; syncTextStyles(); };
-        window.changePreviewSize = function(pixelSize) { currentFontSizeNum = parseInt(pixelSize); document.getElementById('sliderValDisplay').innerText = currentFontSizeNum + "px"; syncTextStyles(); };
-        function syncTextStyles() { const node = document.getElementById('liveStudentName'); node.className = `tracking-wide inline-block whitespace-nowrap pointer-events-none ${currentActiveFont} ${currentActiveColor}`; node.style.fontSize = currentFontSizeNum + "px"; }
-
-        function initAdvancedTouchEngine() {
-            const dragElement = document.getElementById('dragNameBox'); const boundaryContainer = document.getElementById('canvasFrame'); const slider = document.getElementById('textSizeSlider');
-            let activeTracking = false; let startCoordX, startCoordY; let currentOffsetLeft, currentOffsetTop; let initialPinchDistance = 0; let baseFontSizeOnPinchStart = 14;
-
-            dragElement.addEventListener('wheel', (e) => { e.preventDefault(); currentFontSizeNum = e.deltaY < 0 ? Math.min(35, currentFontSizeNum + 1) : Math.max(10, currentFontSizeNum - 1); slider.value = currentFontSizeNum; document.getElementById('sliderValDisplay').innerText = currentFontSizeNum + "px"; syncTextStyles(); }, { passive: false });
-            dragElement.addEventListener('mousedown', initiateDragProcess);
-            dragElement.addEventListener('touchstart', initiateDragProcess, { passive: false });
-
-            function initiateDragProcess(e) {
-                activeTracking = true;
-                if (e.type === 'touchstart' && e.touches.length === 2) { initialPinchDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); baseFontSizeOnPinchStart = currentFontSizeNum; } 
-                else { const baseEvent = e.type === 'touchstart' ? e.touches[0] : e; startCoordX = baseEvent.clientX; startCoordY = baseEvent.clientY; currentOffsetLeft = dragElement.offsetLeft; currentOffsetTop = dragElement.offsetTop; }
-                document.addEventListener('mousemove', computeMovementValues);
-                document.addEventListener('touchmove', computeMovementValues, { passive: false });
-                document.addEventListener('mouseup', terminateDragProcess);
-                document.addEventListener('touchend', terminateDragProcess);
-                if(e.cancelable) e.preventDefault();
-            }
-
-            function computeMovementValues(e) {
-                if (!activeTracking) return;
-                if(e.cancelable) e.preventDefault();
-
-                if (e.type === 'touchmove' && e.touches.length === 2) {
-                    const currentDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-                    if (initialPinchDistance > 0) {
-                        let targetCalculatedFontSize = Math.round(baseFontSizeOnPinchStart * (currentDistance / initialPinchDistance));
-                        if (targetCalculatedFontSize >= 10 && targetCalculatedFontSize <= 35) { currentFontSizeNum = targetCalculatedFontSize; slider.value = currentFontSizeNum; document.getElementById('sliderValDisplay').innerText = currentFontSizeNum + "px"; syncTextStyles(); }
-                    }
-                    return;
-                }
-
-                const baseEvent = e.type === 'touchmove' ? e.touches[0] : e;
-                const zoomFactorModifier = isPageZoomedIn ? 1.4 : 1;
-                const deltaX = (baseEvent.clientX - startCoordX) / zoomFactorModifier;
-                const deltaY = (baseEvent.clientY - startCoordY) / zoomFactorModifier;
-
-                let targetLeft = currentOffsetLeft + deltaX; let targetTop = currentOffsetTop + deltaY;
-                const maxBoundsRight = boundaryContainer.clientWidth - dragElement.clientWidth;
-                const maxBoundsBottom = boundaryContainer.clientHeight - dragElement.clientHeight;
-
-                if (targetLeft < 0) targetLeft = 0; if (targetLeft > maxBoundsRight) targetLeft = maxBoundsRight;
-                if (targetTop < 0) targetTop = 0; if (targetTop > maxBoundsBottom) targetTop = maxBoundsBottom;
-
-                dragElement.style.left = `${targetLeft}px`; dragElement.style.top = `${targetTop}px`;
-            }
-
-            function terminateDragProcess() { activeTracking = false; initialPinchDistance = 0; document.removeEventListener('mousemove', computeMovementValues); document.removeEventListener('touchmove', computeMovementValues); }
-        }
-    </script>
-</body>
-</html>
+            if (transactionUtr.length < 6) { alert("Enter valid 12-Digit Transaction UTR number!"); return; }
+            
+            const btn = document.getElementById('submitBtn');
+            btn.innerText = "Processing Your O
