@@ -6,26 +6,23 @@
     <title>Document Viewer - File Work Station</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght=600&family=Courier+Prime:ital,wght=1,700&family=Inter:wght@800&family=Playfair+Display:ital,wght=1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Courier+Prime:ital,wght=1,700&family=Inter:wght@800&family=Playfair+Display:ital,wght=1,700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        /* FIXED ENGINE: REMOVED RIGID FIXED BOX CORES TO ALLOW 100% UNIVERSAL SCALING RE-FIT */
         .academic-page-container { 
             width: 100% !important; 
             display: flex; 
             flex-direction: column;
             justify-content: center; 
-            padding: 0px !important; /* Stripped out all bad margin block frames */
+            padding: 0px !important; 
             box-sizing: border-box; 
         }
-        
-        /* THE UNIVERSAL AUTO-FIT MATRIX: ADJUSTS AUTOMATICALLY ACCORDING TO A4, A3, A2 LANDSCAPE/PORTRAIT Ratios */
         .pdf-iframe-rigid-wrapper {
             width: 100% !important;
             min-height: 480px !important;
             height: auto !important;
-            aspect-ratio: 3 / 4.2 !important; /* Fluid scaling ratio optimized for mobile viewing grids */
+            aspect-ratio: 3 / 4.2 !important; 
             position: relative !important;
             border-radius: 12px;
             overflow: hidden !important;
@@ -40,11 +37,8 @@
             position: absolute !important;
             top: 0 !important;
             left: 0 !important;
-            object-fit: contain !important; /* Forces document internals to stay perfectly packed inside viewport */
             z-index: 10 !important;
         }
-        
-        /* PREMIUM BOLD DIAGONAL WATERMARK PROTECTION OVERLAY */
         .master-locked-watermark { 
             position: absolute; 
             inset: 0; 
@@ -99,7 +93,7 @@
             <a href="index.html" class="text-xs text-blue-600 font-semibold inline-block mb-3">← Back to Shop</a>
             <h2 id="displayTitle" class="text-sm font-bold text-gray-900 mb-1">Loading Title Frame...</h2>
             
-            <div class="mb-5 bg-gray-50 p-4 rounded-xl border border-gray-200 mt-4">
+            <div id="priceCalculatorWidget" class="mb-5 bg-gray-50 p-4 rounded-xl border border-gray-200 mt-4">
                 <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Number of Pages Needed</label>
                 <div class="flex items-center gap-4 mb-3">
                     <button onclick="window.adjustPages(-1)" class="bg-white border px-3 py-1 rounded text-xs font-bold hover:bg-gray-100">-</button>
@@ -108,10 +102,13 @@
                 </div>
                 <div class="flex justify-between border-t pt-2 text-xs font-medium"><span class="text-gray-500">Total Amount:</span><span class="font-bold text-green-600">₹<span id="totalAmount">0</span></span></div>
             </div>
-            <button onclick="window.processPaymentQR()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3 rounded-lg shadow-md uppercase tracking-wider">Order Now & Pay</button>
+            
+            <div id="actionButtonTriggerArea">
+                <button onclick="window.processPaymentQR()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3 rounded-lg shadow-md uppercase tracking-wider">Order Now & Pay</button>
+            </div>
         </div>
 
-        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center justify-center min-h-[300px] h-fit w-full">
+        <div id="paymentRightPanelWrapper" class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center justify-center min-h-[300px] h-fit w-full">
             <div id="qrIdleState" class="text-gray-400 text-center p-4"><p class="text-xs font-medium">Complete delivery specifics to initialize merchant secure transaction flow window.</p></div>
             <div id="qrActiveState" class="hidden w-full flex flex-col items-center">
                 
@@ -190,9 +187,9 @@
         let currentPageCount = 1;
         let basePrice = parseInt(localStorage.getItem('selectedPrice')) || 5;
         let currentProductTitle = localStorage.getItem('selectedTitle') || "Custom File Package";
+        let currentProductCategory = localStorage.getItem('selectedCategory') || "";
         let qrcodeHandler = null;
         let activeTimerInterval = null; 
-        
         let localVirtualPagePointer = 1; 
 
         let deliveryName = "";
@@ -232,8 +229,38 @@
                 }
             }
             
-            if (document.getElementById('displayTitle')) { document.getElementById('displayTitle').innerText = currentProductTitle; refreshCalculations(); }
+            if (document.getElementById('displayTitle')) { 
+                document.getElementById('displayTitle').innerText = currentProductTitle; 
+            }
+
+            // CORE FREE BYPASS ENGINE: Checks category node maps to wipe payment widgets
+            if(currentProductCategory === "NCERT Books" || currentProductCategory === "Coaching Notes" || currentProductCategory === "PYQs Materials") {
+                document.getElementById('priceCalculatorWidget').innerHTML = `
+                    <div class="p-2 text-center bg-emerald-50 border border-emerald-200 rounded-lg">
+                        <span class="text-xs font-black text-emerald-700 uppercase tracking-wider">🎉 FWS FREE ACADEMIC TRAFFIC REWARDS</span>
+                        <p class="text-[10px] text-emerald-600 font-medium mt-0.5">This official material asset is 100% unlocked for infinite downloads.</p>
+                    </div>`;
+                
+                document.getElementById('actionButtonTriggerArea').innerHTML = `
+                    <button onclick="window.triggerDirectFreeDownload()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs py-3 rounded-lg shadow-md uppercase tracking-wider cursor-pointer transition-all animate-bounce">
+                        📥 Download Free Material Now
+                    </button>`;
+                
+                // Hides paid right side timer panels securely
+                document.getElementById('paymentRightPanelWrapper').className = "hidden";
+            } else {
+                refreshCalculations();
+            }
         });
+
+        window.triggerDirectFreeDownload = function() {
+            const directPdfUrl = localStorage.getItem('deliverableFileUrl') || "#";
+            if(directPdfUrl !== "#") {
+                window.open(directPdfUrl, '_blank');
+            } else {
+                alert("Material asset path connection missing!");
+            }
+        };
 
         window.navigateIframePage = function(directionPointer) {
             const playerIframeElement = document.getElementById('googleDrivePdfPlayer');
@@ -295,82 +322,4 @@
             document.getElementById('qrcodeWrapper').innerHTML = "";
             qrcodeHandler = new QRCode(document.getElementById("qrcodeWrapper"), { text: upiPayloadUrl, width: 160, height: 160 });
             
-            startPaymentCountdownTimer(); 
-        }
-
-        function startPaymentCountdownTimer() {
-            if(activeTimerInterval) clearInterval(activeTimerInterval);
-            let totalSecondsLeft = 150; 
-            const timerDisplayNode = document.getElementById('liveTimerCountdown');
-            
-            activeTimerInterval = setInterval(() => {
-                let computedMinutes = Math.floor(totalSecondsLeft / 60);
-                let computedSeconds = totalSecondsLeft % 60;
-                let displayMins = computedMinutes < 10 ? "0" + computedMinutes : computedMinutes;
-                let displaySecs = computedSeconds < 10 ? "0" + computedSeconds : computedSeconds;
-                
-                timerDisplayNode.innerText = `${displayMins}:${displaySecs}`;
-                if(totalSecondsLeft <= 0) {
-                    clearInterval(activeTimerInterval);
-                    alert("⏰ Payment Session Expired! Please try again to proceed safely.");
-                    window.location.reload();
-                }
-                totalSecondsLeft--;
-            }, 1000);
-        }
-
-        window.dispatchProof = async function() {
-            const transactionUtr = document.getElementById('utrField').value.trim();
-            if (transactionUtr.length < 6) { alert("Enter valid 12-Digit Transaction UTR number!"); return; }
-            
-            const btn = document.getElementById('submitBtn');
-            btn.innerText = "Processing Your Order... Please Wait";
-            btn.disabled = true;
-            
-            const generatedOrderId = "FWS-" + Math.floor(100000 + Math.random() * 900000);
-            const netTotalAmountCalculated = currentPageCount * basePrice;
-
-            try {
-                await addDoc(collection(db, "orders"), { 
-                    orderId: generatedOrderId, name: deliveryName, item: currentProductTitle, 
-                    quantity: currentPageCount, amount: netTotalAmountCalculated, 
-                    utr: transactionUtr, status: "Pending", downloadUrl: localStorage.getItem('deliverableFileUrl') || "#", 
-                    phone: deliveryPhone, college: deliveryCollege, class: deliveryClass,
-                    section: deliverySection, rollNumber: deliveryRollNo, address: deliveryAddress,
-                    timestamp: new Date().toISOString() 
-                });
-
-                if(activeTimerInterval) clearInterval(activeTimerInterval); 
-
-                let userTrackingList = JSON.parse(localStorage.getItem('myFwsOrders')) || [];
-                userTrackingList.push(generatedOrderId); 
-                localStorage.setItem('myFwsOrders', JSON.stringify(userTrackingList));
-                
-                alert(`🎉 Order Placed Successfully!\n\nYour premium customized file order has been registered. Our delivery executive will arrive soon at your destination campus location.`);
-                
-                const waMessageBodyString = `🚨 *NEW ORDER RECEIVED - FILE WORK STATION* 🚨\n\n` +
-                    `📌 *Order Details:* ${currentProductTitle}\n` +
-                    `🔢 *Order ID Ref:* ${generatedOrderId}\n` +
-                    `👤 *Student Name:* ${deliveryName}\n` +
-                    `📞 *WhatsApp Contact:* ${deliveryPhone}\n` +
-                    `🏛️ *School/University:* ${deliveryCollege}\n` +
-                    `🏫 *Class Name Structure:* ${deliveryClass}\n` +
-                    `🔢 *Class Section Node:* ${deliverySection}\n` +
-                    `🆔 *Class Roll Number:* ${deliveryRollNo}\n` +
-                    `📍 *Full Delivery Address:* ${deliveryAddress}\n` +
-                    `💳 *Net Paid Amount:* ₹${netTotalAmountCalculated} (${currentPageCount} pages)\n` +
-                    `🧾 *Transaction UTR Id:* ${transactionUtr}\n\n` +
-                    `*Please process and align my practical/certificate elements vectors manually!*`;
-
-                const formattedWhatsAppGatewayUrl = `https://api.whatsapp.com/send?phone=9457906960&text=${encodeURIComponent(waMessageBodyString)}`;
-                window.location.href = formattedWhatsAppGatewayUrl; 
-
-            } catch (error) { 
-                alert("Database transmission connection failed!"); 
-                btn.innerText = "Submit Order Proof"; 
-                btn.disabled = false;
-            }
-        };
-    </script>
-</body>
-</html>
+   
