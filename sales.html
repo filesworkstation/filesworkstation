@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Sales History Logs - File Work Station</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans min-h-screen">
+
+    <nav class="p-4 border-b border-gray-200 bg-white flex justify-between items-center px-6 shadow-sm">
+        <div>
+            <h1 class="text-xl font-black tracking-widest text-emerald-600 leading-none">FWS MASTER SALES SHEETS</h1>
+            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wider block mt-1">Live Database Processed History Logs</span>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="window.exportToExcelSheet()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-2 rounded-lg shadow-sm transition-all flex items-center gap-1 cursor-pointer">
+                📊 Export Sheet to Backup Excel
+            </button>
+            <a href="admin.html" class="text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg transition-all">← Back to Dashboard</a>
+        </div>
+    </nav>
+
+    <div class="max-w-7xl mx-auto p-4 mt-4">
+        <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-xs mb-4">
+            <p class="text-[11px] font-black text-gray-400 uppercase tracking-wider mb-2">🔍 Sales Sheet Database Search Engine</p>
+            <input type="text" id="salesSearchField" oninput="window.filterSalesArchiveData()" placeholder="Type Student Name, Order ID, or UTR to search anything instantly inside history logs..." class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 text-xs focus:outline-none focus:border-emerald-600 font-semibold">
+        </div>
+
+        <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-emerald-50 text-[10px] font-black text-emerald-800 uppercase tracking-wider border-b border-gray-200">
+                            <th class="p-3">Order ID & Item Name</th>
+                            <th class="p-3">Janam Kundli (Student Details)</th>
+                            <th class="p-3">Delivery Address logs</th>
+                            <th class="p-3">Timestamp (Exact Date & Time)</th>
+                            <th class="p-3 text-right">Financials & Asset Link</th>
+                        </tr>
+                    </thead>
+                    <tbody id="salesSheetHistoryContainer" class="divide-y divide-gray-100 text-xs bg-white">
+                        <tr><td colspan="5" class="text-center p-12 text-gray-400">Syncing active archive server streams parameter models...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+     <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyBC7S5uJd9izO5qOV8W40T7KtNvGEk6oIU",
+          authDomain: "filesworkstation-b3074.firebaseapp.com",
+          projectId: "filesworkstation-b3074",
+          storageBucket: "filesworkstation-b3074.appspot.com", 
+          messagingSenderId: "922394201956",
+          appId: "1:922394201956:web:7d18af7a9027103c0ab471"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let masterSalesBackupCache = [];
+
+        onSnapshot(collection(db, "orders"), (snapshot) => {
+            const container = document.getElementById('salesSheetHistoryContainer');
+            container.innerHTML = "";
+            masterSalesBackupCache = [];
+
+            if (snapshot.empty) {
+                container.innerHTML = `<tr><td colspan="5" class="text-center p-8 text-gray-400">No history records compiled inside cloud database storage nodes.</td></tr>`;
+                return;
+            }
+
+            let printedRowsCount = 0;
+
+            snapshot.forEach((docNode) => {
+                const order = docNode.data();
+                
+                if(order.status === "Approved" || order.status === "Rejected") {
+                    printedRowsCount++;
+                    masterSalesBackupCache.push(order);
+
+                    let statusBadgeStyle = order.status === "Approved" ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200";
+                    
+                    let compiledTimeDisplay = "Live Processing Session";
+                    if(order.timestamp) {
+                        try {
+                            const rawDateObj = new Date(order.timestamp);
+                            compiledTimeDisplay = rawDateObj.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) + 
+                                                   " | " + rawDateObj.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                        } catch(e) { compiledTimeDisplay = String(order.timestamp); }
+                    }
+
+                    // Extract valid target pointers safely
+                    let finalTargetSource = order.downloadUrl || order.imageUrl || "#";
+
+                    container.innerHTML += `
+                        <tr class="hover:bg-gray-50/50 sales-history-data-row" data-search="${String(order.name).toLowerCase()} ${String(order.orderId).toLowerCase()} ${String(order.utr).toLowerCase()}">
+                            <td class="p-3">
+                                <div class="font-extrabold text-gray-900 text-[12px]">${order.item}</div>
+                                <div class="text-[10px] font-mono text-gray-400 mt-0.5">ID Ref: ${order.orderId}</div>
+                            </td>
+                            <td class="p-3">
+                                <div class="font-bold text-blue-600 text-[12px]">${order.name}</div>
+                                <div class="text-[10px] text-gray-500 font-semibold mt-0.5">📞 Ph: ${order.phone || 'N/A'}</div>
+                                <div class="text-[9px] text-gray-400 mt-0.5">🏛️ ${order.college || 'N/A'}</div>
+                            </td>
+                            <td class="p-3">
+                                <div class="text-[11px] font-semibold text-gray-700">Class: ${order.class || 'N/A'} | Sec: ${order.section || 'N/A'}</div>
+                                <div class="text-[10px] text-gray-500 font-medium max-w-xs break-words mt-0.5 bg-gray-50 p-1 rounded border border-gray-100 break-words">📍 ${order.address || 'N/A'}</div>
+                            </td>
+                            <td class="p-3 whitespace-nowrap">
+                                <div class="font-bold text-gray-700 bg-gray-100 px-2 py-1 rounded border border-gray-200 text-[10px] inline-block font-mono">📅 ${compiledTimeDisplay}</div>
+                            </td>
+                            <td class="p-3 text-right whitespace-nowrap">
+                                <div class="font-black text-gray-900 text-[13px]">₹${order.amount} <span class="text-[9px] font-normal text-gray-400">(${order.quantity} pgs)</span></div>
+                                <div class="text-[10px] font-mono text-purple-700 font-bold mt-0.5">UTR: ${order.utr}</div>
+                                <div class="mt-1.5 flex justify-end gap-2 items-center">
+                                    <span class="text-[8px] font-black px-1.5 py-0.5 rounded border uppercase ${statusBadgeStyle}">${order.status}</span>
+                                    <button onclick="window.inspectOrderDataPayload('${order.orderId}', '${order.item.replace(/'/g, "\\'")}', '${order.name.replace(/'/g, "\\'")}', '${finalTargetSource}')" class="text-[10px] text-blue-600 hover:bg-blue-50 font-bold bg-white px-2.5 py-1 border border-gray-200 rounded shadow-2xs cursor-pointer uppercase tracking-wide">Open File 🖼️</button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
+
+            if(printedRowsCount === 0) {
+                container.innerHTML = `<tr><td colspan="5" class="text-center p-12 text-gray-400 font-bold">No history data records compiled in sheets container yet.</td></tr>`;
+            }
+        });
+
+        window.inspectOrderDataPayload = function(orderId, itemTitle, studentName, targetAssetUrl) {
+            localStorage.setItem('inspect_id', orderId);
+            localStorage.setItem('inspect_item', itemTitle);
+            localStorage.setItem('inspect_name', studentName);
+            localStorage.setItem('inspect_asset', targetAssetUrl);
+            window.location.href = "orderchecking.html";
+        };
+
+        window.filterSalesArchiveData = function() {
+            const queryText = document.getElementById('salesSearchField').value.trim().toLowerCase();
+            document.querySelectorAll('.sales-history-data-row').forEach((row) => {
+                const criteria = row.getAttribute('data-search') || "";
+                if(criteria.includes(queryText)) row.classList.remove('hidden'); else row.classList.add('hidden');
+            });
+        };
+
+        window.exportToExcelSheet = function() {
+            if(masterSalesBackupCache.length === 0) { alert("No transaction data available to compile!"); return; }
+            const excelRows = masterSalesBackupCache.map(order => ({ "Order ID": order.orderId || "N/A", "Student Name": order.name || "N/A", "WhatsApp Number": order.phone || "N/A", "School/College": order.college || "N/A", "Class": order.class || "N/A", "Section": order.section || "N/A", "Roll Number": order.rollNumber || "N/A", "Full Delivery Address": order.address || "N/A", "Document Package": order.item || "N/A", "Pages Count": order.quantity || 0, "Net Total Amount (₹)": order.amount || 0, "Transaction UTR": order.utr || "N/A", "Order Status": order.status || "Pending", "Submission Timestamp": order.timestamp || "N/A" }));
+            const worksheet = XLSX.utils.json_to_sheet(excelRows); const workbook = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(workbook, worksheet, "FWS Compiled Sheet Log");
+            XLSX.writeFile(workbook, `FWS_Database_Sales_Backup_${new Date().toISOString().split('T')[0]}.xlsx`);
+        };
+    </script>
+</body>
+</html>

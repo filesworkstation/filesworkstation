@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Verification Hub - File Work Station</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        .image-preview-frame {
+            width: 100%;
+            max-width: 360px;
+            aspect-ratio: 3 / 4.2;
+            border-radius: 12px;
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen">
+
+    <nav class="p-4 border-b border-gray-200 bg-white flex justify-between items-center px-6 shadow-sm">
+        <div>
+            <h1 class="text-lg font-black tracking-widest text-blue-600 leading-none">ORDER INSPECTION HUB</h1>
+            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wider block mt-1">FWS Live Template Verification Center</span>
+        </div>
+        <a href="sales.html" class="text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg transition-all">← Back to Sales Sheet</a>
+    </nav>
+
+    <div class="max-w-4xl mx-auto p-4 grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+        
+        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm h-fit">
+            <h3 class="text-xs font-black text-gray-400 uppercase tracking-wider border-b pb-2 mb-4">📋 Student Order Meta Parameters</h3>
+            
+            <div class="space-y-4">
+                <div>
+                    <span class="text-[10px] font-bold text-gray-400 uppercase block">👤 Student Full Name</span>
+                    <p id="inspectStudentName" class="text-sm font-black text-blue-600">Loading...</p>
+                </div>
+                <div>
+                    <span class="text-[10px] font-bold text-gray-400 uppercase block">📦 Purchased Item Specification</span>
+                    <p id="inspectItemTitle" class="text-xs font-extrabold text-gray-900 leading-tight">Loading...</p>
+                </div>
+                <div>
+                    <span class="text-[10px] font-bold text-gray-400 uppercase block">🔢 Unique System Order ID</span>
+                    <p id="inspectOrderId" class="text-xs font-mono font-bold text-gray-500">Loading...</p>
+                </div>
+            </div>
+
+            <div class="mt-6 border-t pt-4">
+                <button onclick="window.revealDesignTemplateAsset()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black text-xs py-3 rounded-xl shadow-md uppercase tracking-wider cursor-pointer transition-all">
+                    📸 View Selected Design Material Template 🖼️
+                </button>
+            </div>
+        </div>
+
+        <div class="flex flex-col items-center justify-center bg-white p-4 rounded-xl border border-gray-200 shadow-sm min-h-[400px]">
+            <p id="canvasIdlePlaceholder" class="text-center text-xs text-gray-400 font-medium px-6">Click the blue button on the left to securely render the exact material design style selected by this customer.</p>
+            
+            <div id="canvasActiveView" class="hidden w-full flex flex-col items-center">
+                <div id="photoFrameWrapper" class="image-preview-frame shadow-xs hidden"></div>
+                <iframe id="drivePdfIframe" src="" class="w-full max-w-[360px] aspect-[3/4.2] border rounded-xl hidden" allow="autoplay"></iframe>
+                <span class="text-[9px] font-bold text-gray-400 uppercase mt-2.5 tracking-widest">FWS Vault Secure Asset Channel</span>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const name = localStorage.getItem('inspect_name') || "N/A";
+            const title = localStorage.getItem('inspect_item') || "N/A";
+            const id = localStorage.getItem('inspect_id') || "N/A";
+
+            document.getElementById('inspectStudentName').innerText = name;
+            document.getElementById('inspectItemTitle').innerText = title;
+            document.getElementById('inspectOrderId').innerText = id;
+        });
+
+        window.revealDesignTemplateAsset = function() {
+            const sourceUrl = localStorage.getItem('inspect_asset') || "";
+            
+            const placeholder = document.getElementById('canvasIdlePlaceholder');
+            const activeView = document.getElementById('canvasActiveView');
+            const photoWrapper = document.getElementById('photoFrameWrapper');
+            const pdfIframe = document.getElementById('drivePdfIframe');
+
+            placeholder.classList.add('hidden');
+            activeView.classList.remove('hidden');
+            photoWrapper.classList.add('hidden');
+            pdfIframe.classList.add('hidden');
+
+            if(sourceUrl && sourceUrl.includes('drive.google.com')) {
+                // If it is a heavy document package, route directly via embed tags
+                let cleanLink = sourceUrl;
+                if(cleanLink.includes('/preview')) cleanLink = cleanLink.replace('/preview', '/view');
+                pdfIframe.src = cleanLink;
+                pdfIframe.classList.remove('hidden');
+            } else if(sourceUrl && (sourceUrl.startsWith('data:image') || sourceUrl.length > 20)) {
+                // If it is a base64 image data string, map it straight on canvas background matrix
+                photoWrapper.style.backgroundImage = `url('${sourceUrl}')`;
+                photoWrapper.classList.remove('hidden');
+            } else {
+                alert("⚠️ No valid design asset layout registered for this order reference token.");
+            }
+        };
+    </script>
+</body>
+</html>
