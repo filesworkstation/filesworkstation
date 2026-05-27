@@ -4,15 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Dashboard - File Work Station</title>
+    <!-- Tailwind CSS v4 -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        .product-card-dash { transition: all 0.2s ease-in-out; }
+        .product-card-dash:hover { transform: translateY(-1px); }
+        @keyframes pulse-soft { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .animate-pulse-soft { animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans min-h-screen">
 
+    <!-- Navigation Bar -->
     <nav class="p-3 border-b border-gray-200 bg-white flex justify-between items-center px-6 shadow-sm">
         <h1 class="text-xl font-black tracking-widest text-blue-600 leading-none">FILE WORK STATION</h1>
         <a href="index.html" class="text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-lg transition-all">← Back to Shop</a>
     </nav>
 
+    <!-- Social Gateways Links -->
     <div class="max-w-3xl mx-auto px-4 mt-4 grid grid-cols-2 gap-2 text-center">
         <a href="https://wa.me/919457906960?text=Hello%20File%20Work%20Station%2C%20I%20have%20a%20query%20about%20my%20dashboard%20status." target="_blank" class="flex items-center justify-center gap-1.5 bg-green-50 text-green-700 border border-green-200 font-black text-[10px] uppercase tracking-wider py-2 rounded-xl shadow-xs hover:bg-green-100 transition-all">
             💬 Chat with Us
@@ -22,20 +31,45 @@
         </a>
     </div>
 
-    <div class="max-w-3xl mx-auto p-4 mt-4">
-        <h2 class="text-lg font-black text-gray-900 uppercase tracking-wider mb-4">My Dashboard & Files</h2>
+    <!-- Main Dashboard Engine Dashboard Wrapper -->
+    <div class="max-w-3xl mx-auto p-4 mt-2 space-y-6">
         
-        <div id="studentDashboardBox" class="space-y-3">
-            <div class="bg-white p-6 border rounded-xl text-center text-gray-400 text-xs">
-                Fetching secure user order states from Firebase cloud stream pipelines...
+        <!-- SECTION 1: Active Cart Items Node Workspace -->
+        <div>
+            <div class="flex justify-between items-center mb-3 px-1">
+                <h2 class="text-xs font-black text-gray-400 uppercase tracking-widest">🛒 Shopping Cart Queue</h2>
+                <span id="cartCountBadge" class="bg-blue-50 text-blue-600 text-[10px] font-black px-2 py-0.5 rounded-lg border border-blue-200">0 Items</span>
+            </div>
+            
+            <div id="activeCartContainer" class="space-y-2.5">
+                <!-- Cart items injections pipeline goes here dynamic -->
+                <div class="bg-white p-6 border rounded-xl text-center text-gray-400 text-xs shadow-2xs">
+                    Your shopping cart wrapper is completely empty. Add premium structural templates from shop!
+                </div>
             </div>
         </div>
+
+        <hr class="border-gray-200 my-2">
+
+        <!-- SECTION 2: Verified Realtime Purchase Orders Stack -->
+        <div>
+            <h2 class="text-xs font-black text-gray-400 uppercase tracking-widest mb-3 px-1">📦 Order Tracking History</h2>
+            
+            <div id="studentDashboardBox" class="space-y-3">
+                <div class="bg-white p-6 border rounded-xl text-center text-gray-400 text-xs shadow-2xs">
+                    Fetching secure user order states from Firebase cloud stream pipelines...
+                </div>
+            </div>
+        </div>
+
     </div>
+
+    <!-- Script Application Logics -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Your Exact Config Credentials
+        // Configuration Mapping Parameters
         const firebaseConfig = {
           apiKey: "AIzaSyBC7S5uJd9izO5qOV8W40T7KtNvGEk6oIU",
           authDomain: "filesworkstation-b3074.firebaseapp.com",
@@ -48,39 +82,123 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        const myOrderIds = JSON.parse(localStorage.getItem('myFwsOrders')) || [];
         const container = document.getElementById('studentDashboardBox');
+        const cartContainer = document.getElementById('activeCartContainer');
 
-        if (myOrderIds.length === 0) {
-            container.innerHTML = `
-                <div class="bg-white p-8 border rounded-xl text-center text-gray-400 text-xs shadow-sm">
-                    <p>You haven't ordered any templates yet. Go back to shop to customize your first project sheet! 📁</p>
-                </div>
-            `;
-        } else {
-            // Firestore Real-Time Query Snapshots listening loop pipeline
+        // Document Initialize Run Loops
+        document.addEventListener("DOMContentLoaded", () => {
+            renderLocalStorageCartUI();
+            initializeFirestoreOrdersPipeline();
+        });
+
+        // Pipeline 1: Render Local Storage Shopping Cart
+        function renderLocalStorageCartUI() {
+            const currentCartList = JSON.parse(localStorage.getItem('userCartDataItems')) || [];
+            const badge = document.getElementById('cartCountBadge');
+            
+            if(badge) badge.innerText = `${currentCartList.length} Item(s)`;
+            
+            if(currentCartList.length === 0) {
+                cartContainer.innerHTML = `
+                    <div class="bg-white p-5 border rounded-xl text-center text-gray-400 text-xs shadow-2xs">
+                        <p>Aapki cart abhi khali hai. Shop par jaakar documents add karein! 🛒</p>
+                    </div>
+                `;
+                return;
+            }
+
+            cartContainer.innerHTML = "";
+            currentCartList.forEach((item, index) => {
+                // Formatting data safely to bypass string breakers inside dynamic parameters
+                const escapeTitle = item.title.replace(/['"]/g, '\\$&');
+                const escapePdfUrl = item.deliverableFileUrl.replace(/['"]/g, '\\$&');
+
+                cartContainer.innerHTML += `
+                    <div class="product-card-dash bg-white p-3 rounded-xl border border-gray-200 shadow-xs flex justify-between items-center gap-4">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <img src="${item.shopImageUrl}" class="w-10 h-12 object-cover bg-gray-100 rounded-lg border border-gray-200 flex-shrink-0" alt="Thumbnail">
+                            <div class="min-w-0">
+                                <h4 class="font-bold text-xs text-gray-900 truncate max-w-[180px] sm:max-w-md">${item.title}</h4>
+                                <p class="text-[10px] text-gray-400 uppercase tracking-wide mt-0.5">${item.selectedCategory || 'Document'}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 flex-shrink-0">
+                            <span class="text-xs font-extrabold text-gray-900">₹${item.price}<span class="text-[9px] font-normal text-gray-400">/pg</span></span>
+                            <div class="flex gap-1.5">
+                                <button onclick="window.removeCartItemNode(${index})" class="text-red-500 hover:bg-red-50 border border-transparent hover:border-red-100 font-bold text-[10px] px-2 py-1.5 rounded-lg transition-all cursor-pointer">
+                                    🗑️
+                                </button>
+                                <button onclick="window.checkoutDirectCartItem('${escapeTitle}', '${item.price}', '${item.shopImageUrl}', '${item.textPlacement}', '${escapePdfUrl}', '${item.selectedCategory}')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-[10px] px-3 py-1.5 rounded-lg transition-all shadow-xs cursor-pointer uppercase tracking-wider">
+                                    Order Now ⚡
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // Global functions map mapping endpoints handles
+        window.removeCartItemNode = function(indexPointer) {
+            let currentCartList = JSON.parse(localStorage.getItem('userCartDataItems')) || [];
+            currentCartList.splice(indexPointer, 1);
+            localStorage.setItem('userCartDataItems', JSON.stringify(currentCartList));
+            renderLocalStorageCartUI();
+        };
+
+        window.checkoutDirectCartItem = function(title, price, img, placement, driveUrl, cat) {
+            localStorage.setItem('selectedTitle', title);
+            localStorage.setItem('selectedPrice', price.toString());
+            localStorage.setItem('deliverableFileUrl', driveUrl); 
+            localStorage.setItem('shopImageUrl', img); 
+            localStorage.setItem('textPlacement', placement);      
+            localStorage.setItem('selectedCategory', cat); 
+            window.location.href = 'preview.html';
+        };
+
+        // Pipeline 2: Realtime Database Order Tracker Status Maps
+        function initializeFirestoreOrdersPipeline() {
+            const myOrderIds = JSON.parse(localStorage.getItem('myFwsOrders')) || [];
+
+            if (myOrderIds.length === 0) {
+                container.innerHTML = `
+                    <div class="bg-white p-6 border rounded-xl text-center text-gray-400 text-xs shadow-xs">
+                        <p>Aapne abhi tak koi order place nahi kiya hai. Preview page se order complete karein! 📁</p>
+                    </div>
+                `;
+                return;
+            }
+
             const q = query(collection(db, "orders"), where("orderId", "in", myOrderIds));
+            
             onSnapshot(q, (snapshot) => {
                 container.innerHTML = "";
                 
                 if (snapshot.empty) {
-                    container.innerHTML = `<div class="text-center text-xs text-gray-400 py-4">No data records found matching current device session token.</div>`;
+                    container.innerHTML = `<div class="text-center text-xs text-gray-400 py-6 bg-white border rounded-xl shadow-xs">No active order records matching device parameters token.</div>`;
                     return;
                 }
                 
-                snapshot.forEach((doc) => {
-                    const order = doc.data();
-                    let badgeStyle = "bg-amber-50 text-amber-600 border-amber-200";
-                    let actionBtn = `<button class="bg-gray-100 text-gray-400 font-bold text-[10px] px-3 py-2 rounded-lg cursor-not-allowed" disabled>Verifying Payment</button>`;
+                // Sort arrays matching live creation metrics timelines manually
+                let sortedDocumentsDocs = [];
+                snapshot.forEach(doc => sortedDocumentsDocs.push(doc.data()));
+                sortedDocumentsDocs.sort((x, y) => new Date(y.timestamp) - new Date(x.timestamp));
 
-                    // Live state status evaluations mapping
+                sortedDocumentsDocs.forEach((order) => {
+                    let badgeStyle = "bg-amber-50 text-amber-600 border-amber-200";
+                    
+                    // Default State status: Under verification checking logic text layout node
+                    let actionBtn = `
+                        <div class="bg-amber-50 border border-amber-200 text-amber-700 font-extrabold text-[10px] px-3 py-2 rounded-lg flex items-center gap-1 select-none tracking-wide animate-pulse-soft sm:w-auto w-full justify-center">
+                            🔍 Under Verification (Checking UTR...)
+                        </div>`;
+
                     if (order.status === "Approved") {
                         badgeStyle = "bg-green-50 text-green-600 border-green-200";
-                        // DESIGN PRESERVED: Retained your exact stylish blue block design button, converted safely to delivery notify banner
                         actionBtn = `<div class="bg-blue-600 text-center text-white font-bold text-[10px] px-4 py-2 rounded-lg block shadow-sm shadow-blue-200 select-none cursor-default sm:w-auto w-full animate-pulse">🚚 Out For Delivery</div>`;
                     } else if (order.status === "Rejected") {
                         badgeStyle = "bg-red-50 text-red-600 border-red-200";
-                        actionBtn = `<span class="text-xs font-bold text-red-500 bg-red-50 border border-red-100 px-2 py-1 rounded">UTR Declined / Fraud</span>`;
+                        actionBtn = `<span class="text-[10px] font-black text-red-600 bg-red-50 border border-red-200 px-3 py-2 text-center rounded-lg uppercase tracking-wider sm:w-auto w-full block">UTR Declined / Fraud ❌</span>`;
                     }
 
                     container.innerHTML += `
@@ -88,9 +206,9 @@
                             <div>
                                 <div class="flex items-center gap-2 mb-1">
                                     <span class="font-extrabold text-sm text-gray-900">${order.item}</span>
-                                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded border ${badgeStyle}">${order.status}</span>
+                                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase tracking-wider ${badgeStyle}">${order.status}</span>
                                 </div>
-                                <p class="text-xs text-gray-400">ID: <span class="font-mono text-gray-600">${order.orderId}</span> | Pages: ${order.quantity} | Student Name: <span class="text-blue-600 font-semibold">${order.name}</span></p>
+                                <p class="text-xs text-gray-400">ID: <span class="font-mono text-gray-600">${order.orderId}</span> | Pages: ${order.quantity} | Name: <span class="text-blue-600 font-semibold">${order.name}</span></p>
                             </div>
                             <div class="flex items-center justify-between sm:justify-end gap-4 border-t sm:border-t-0 pt-2 sm:pt-0">
                                 <span class="text-sm font-black text-gray-900">₹${order.amount}</span>
