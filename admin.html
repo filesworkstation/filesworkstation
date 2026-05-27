@@ -8,7 +8,7 @@
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans min-h-screen">
 
-    <nav class="p-4 border-b border-gray-200 bg-white flex justify-between items-center px-6 shadow-xs">
+    <nav class="p-4 border-b border-gray-200 bg-white flex justify-between items-center px-6 shadow-sm">
         <div>
             <h1 class="text-xl font-black tracking-widest text-blue-600 leading-none">FWS CONTROL CENTER</h1>
             <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wider block mt-1">Live Order Management Panel</span>
@@ -23,10 +23,10 @@
         <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-xs mb-6">
             <h3 class="text-xs font-black text-gray-900 uppercase tracking-wider border-b pb-2 mb-4 flex items-center gap-1">📁 Upload New Material / Notes / Practical Files</h3>
             
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 items-end mb-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-4">
                 <div>
                     <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">📄 Material / Notes Title Name</label>
-                    <input type="text" id="newProdTitle" placeholder="e.g., Class 12 Physics Chapter 1 PYQs" class="w-full bg-gray-50 border rounded-lg p-2 text-xs focus:outline-none focus:border-blue-600 font-semibold">
+                    <input type="text" id="newProdTitle" placeholder="e.g., Physics Chapter 1 PYQs" class="w-full bg-gray-50 border rounded-lg p-2 text-xs focus:outline-none focus:border-blue-600 font-semibold">
                 </div>
                 <div>
                     <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">🏷️ Select Material Category</label>
@@ -41,12 +41,36 @@
                         <option value="PYQs Materials">📊 Previous Years Questions (PYQ)</option>
                     </select>
                 </div>
+                <div>
+                    <label class="block text-[10px] font-black text-blue-600 uppercase mb-1">🏫 Target Academic Class / Course</label>
+                    <select id="newProdClassTarget" class="w-full bg-blue-50/50 border border-blue-200 rounded-lg p-2 text-xs focus:outline-none focus:border-blue-600 font-bold text-blue-900">
+                        <option value="General" selected>🌐 General / All Classes</option>
+                        <option value="Class 9th">🎒 Class 9th Standard</option>
+                        <option value="Class 10th">🎒 Class 10th Standard</option>
+                        <option value="Class 11th">📐 Class 11th Standard</option>
+                        <option value="Class 12th">🧪 Class 12th Standard</option>
+                        <option value="B.Tech">💻 B.Tech Engineering</option>
+                        <option value="BCA">🖥️ BCA Computer Applications</option>
+                        <option value="B.Sc">🔬 B.Sc Pure Sciences</option>
+                        <option value="B.Com">📈 B.Com Business / Finance</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="pricingFieldsControlGrandWrapper" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 border-t pt-3 mb-4 items-end">
+                <div>
+                    <label class="block text-[10px] font-black text-purple-600 uppercase mb-1">⚙️ Material Format Type</label>
+                    <select id="newProdFormatType" onchange="window.evaluateCategoryPricingFieldsToggle()" class="w-full bg-purple-50/50 border border-purple-200 rounded-lg p-2 text-xs focus:outline-none focus:border-purple-600 font-bold text-purple-900">
+                        <option value="Full Booklet" selected>📂 Full Booklet / Multiple Pages File</option>
+                        <option value="Single Page">📄 Single Page Layout / Front Sheet Format</option>
+                    </select>
+                </div>
                 <div id="totalPagesInputWrapper">
-                    <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">📄 Total Pages In File (1 to 200)</label>
+                    <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">📄 Total Pages In File (1 to 500)</label>
                     <input type="number" id="newProdTotalPages" value="1" min="1" max="500" class="w-full bg-gray-50 border rounded-lg p-2 text-xs focus:outline-none focus:border-blue-600 font-bold">
                 </div>
                 <div id="priceInputWrapper">
-                    <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">💰 Price Per Page / Full Book (₹)</label>
+                    <label id="priceFieldDynamicLabel" class="block text-[10px] font-black text-gray-400 uppercase mb-1">💰 Fixed Full Booklet Price (₹)</label>
                     <input type="number" id="newProdPrice" placeholder="e.g., 20" class="w-full bg-gray-50 border rounded-lg p-2 text-xs focus:outline-none focus:border-blue-600 font-bold">
                 </div>
             </div>
@@ -96,7 +120,7 @@
             </div>
         </div>
     </div>
-        <script type="module">
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -112,22 +136,39 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // DYNAMIC VISIBILITY SWITCH ENGINE LOGIC BLOCK
+        // ADVANCED TWIN-CRITERIA VISIBILITY SWAPPER ENGINE
         window.evaluateCategoryPricingFieldsToggle = function() {
             const currentSelectedCategory = document.getElementById('newProdCategory').value;
+            const currentFormatType = document.getElementById('newProdFormatType').value;
+            
+            const grandPricingWrapperNode = document.getElementById('pricingFieldsControlGrandWrapper');
             const totalPagesWrapperNode = document.getElementById('totalPagesInputWrapper');
             const priceWrapperNode = document.getElementById('priceInputWrapper');
+            const dynamicLabelNode = document.getElementById('priceFieldDynamicLabel');
 
+            // Scenario A: Checks if traffic acquisition driver categories are active
             if(currentSelectedCategory === "NCERT Books" || currentSelectedCategory === "Coaching Notes" || currentSelectedCategory === "PYQs Materials") {
-                // Instantly hides fields from screen view space area parameters
+                grandPricingWrapperNode.classList.add('hidden');
+                return; // Escape evaluation pipeline loop immediately
+            }
+            
+            // Re-shows layout base area
+            grandPricingWrapperNode.classList.remove('hidden');
+
+            // Scenario B: Evaluates format nodes selection inputs parameters
+            if(currentFormatType === "Single Page") {
                 totalPagesWrapperNode.classList.add('hidden');
-                priceWrapperNode.classList.add('hidden');
+                dynamicLabelNode.innerText = "💰 Price Per Single Page (₹)";
             } else {
-                // Re-shows parameters block structure smoothly
                 totalPagesWrapperNode.classList.remove('hidden');
-                priceWrapperNode.classList.remove('hidden');
+                dynamicLabelNode.innerText = "💰 Fixed Full Booklet Price (₹)";
             }
         };
+
+        // Initialize visibilities vectors mapping securely on startup lifecycle
+        document.addEventListener("DOMContentLoaded", () => {
+            window.evaluateCategoryPricingFieldsToggle();
+        });
 
         function convertFileToBase64(fileNode) {
             return new Promise((resolve, reject) => {
@@ -151,22 +192,25 @@
         window.uploadNewMaterialToShop = async function() {
             const title = document.getElementById('newProdTitle').value.trim();
             const category = document.getElementById('newProdCategory').value;
+            const classTarget = document.getElementById('newProdClassTarget').value;
+            const formatType = document.getElementById('newProdFormatType').value;
             
             const imageInput = document.getElementById('newProdImageFile');
             const driveLinkInput = document.getElementById('newProdDriveLink').value.trim();
 
-            // Automatic bypass logic evaluations values
             let filePages = 1;
             let price = 0;
 
             const isFreeCategoryFlag = (category === "NCERT Books" || category === "Coaching Notes" || category === "PYQs Materials");
 
             if(!isFreeCategoryFlag) {
-                filePages = parseInt(document.getElementById('newProdTotalPages').value) || 1;
                 price = parseFloat(document.getElementById('newProdPrice').value);
+                if(formatType === "Full Booklet") {
+                    filePages = parseInt(document.getElementById('newProdTotalPages').value) || 1;
+                }
                 
                 if(!title || isNaN(price) || imageInput.files.length === 0) {
-                    alert("Please complete Title, Price, and select a Catalog Thumb Image!");
+                    alert("Please complete Title, Price input parameters, and select a Catalog Thumb Image!");
                     return;
                 }
             } else {
@@ -185,25 +229,36 @@
                 const base64CoverThumbString = await convertFileToBase64(imageFileObj);
                 const normalizedEmbedPdfUrl = driveLinkInput ? generateGoogleDriveEmbedUrl(driveLinkInput) : "";
 
+                // COMPILED CLEAN TITLE: Injects class parameter metadata flags inside title strings index rows
+                let masterCompiledProductTitle = `[${category}] ${title} (${classTarget})`;
+                if(!isFreeCategoryFlag && formatType === "Full Booklet") {
+                    masterCompiledProductTitle += ` - ${filePages} Pages`;
+                } else if(!isFreeCategoryFlag && formatType === "Single Page") {
+                    masterCompiledProductTitle += ` - Single Page Format`;
+                } else {
+                    masterCompiledProductTitle += ` - (FREE DOWNLOAD)`;
+                }
+
                 await addDoc(collection(db, "products"), {
-                    title: isFreeCategoryFlag ? `[${category}] ${title} (FREE BOOK)` : `[${category}] ${title} (${filePages} Pages)`,
-                    price: price, // Writes flat 0 values automatically into database records fields
+                    title: masterCompiledProductTitle,
+                    price: price, 
                     imageUrl: base64CoverThumbString, 
                     documentUrl: normalizedEmbedPdfUrl, 
                     placement: "center",
                     category: category,
+                    classCategory: classTarget, // Brand new index query parameter field node added safely
+                    formatType: formatType,
                     totalPages: filePages,
                     timestamp: new Date().toISOString()
                 });
 
-                alert("New Storefront Element Listed Successfully! 🎉");
+                alert("New Dynamic Document Listed Successfully! 🎉");
                 document.getElementById('newProdTitle').value = "";
                 document.getElementById('newProdPrice').value = "";
                 document.getElementById('newProdTotalPages').value = "1";
                 document.getElementById('newProdDriveLink').value = "";
                 imageInput.value = "";
                 
-                // Reset toggles view safely
                 window.evaluateCategoryPricingFieldsToggle();
             } catch (err) {
                 alert("Cloud transmission failed: " + err.message);
