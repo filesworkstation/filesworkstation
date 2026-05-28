@@ -30,15 +30,13 @@
                 </div>
                 <div>
                     <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">🏷️ Select Material Category</label>
+                    <!-- UPDATE 1: HERE IS THE NEW CATEGORY LIST -->
                     <select id="newProdCategory" onchange="window.evaluateCategoryPricingFieldsToggle()" class="w-full bg-gray-50 border rounded-lg p-2 text-xs focus:outline-none focus:border-blue-600 font-bold text-gray-700">
-                        <option value="Practical File" selected>📚 Practical File Sheets</option>
-                        <option value="Holiday Homework">🎉 Holiday Homework File</option>
-                        <option value="Project File">📁 Academic Project File</option>
-                        <option value="Assignment">📝 Subject Assignment</option>
-                        <option value="Front Sheet">✨ Premium Front Cover Sheet</option>
-                        <option value="NCERT Books">📖 NCERT Solution Books</option>
-                        <option value="Coaching Notes">🔥 Handwritten Premium Notes</option>
-                        <option value="PYQs Materials">📊 Previous Years Questions (PYQ)</option>
+                        <option value="Project file" selected>📁 Project File</option>
+                        <option value="Practical file">📚 Practical File</option>
+                        <option value="PYQ">📊 PYQ (Previous Year Questions)</option>
+                        <option value="Premium handwritten notes">🔥 Premium Handwritten Notes</option>
+                        <option value="NCERT solutions">📖 NCERT Solutions</option>
                     </select>
                 </div>
                 <div>
@@ -120,7 +118,7 @@
             </div>
         </div>
     </div>
-    <script type="module">
+        <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -136,7 +134,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // ADVANCED TWIN-CRITERIA VISIBILITY SWAPPER ENGINE
+        // UPDATE 2: LOGIC UPDATED TO MATCH NEW CATEGORY NAMES
         window.evaluateCategoryPricingFieldsToggle = function() {
             const currentSelectedCategory = document.getElementById('newProdCategory').value;
             const currentFormatType = document.getElementById('newProdFormatType').value;
@@ -146,16 +144,16 @@
             const priceWrapperNode = document.getElementById('priceInputWrapper');
             const dynamicLabelNode = document.getElementById('priceFieldDynamicLabel');
 
-            // Scenario A: Checks if traffic acquisition driver categories are active
-            if(currentSelectedCategory === "NCERT Books" || currentSelectedCategory === "Coaching Notes" || currentSelectedCategory === "PYQs Materials") {
+            // Scenario A: Check if traffic acquisition driver categories are active (Using new labels)
+            if(currentSelectedCategory === "NCERT solutions" || currentSelectedCategory === "Premium handwritten notes" || currentSelectedCategory === "PYQ") {
                 grandPricingWrapperNode.classList.add('hidden');
-                return; // Escape evaluation pipeline loop immediately
+                return; 
             }
             
-            // Re-shows layout base area
+            // Re-show layout base area
             grandPricingWrapperNode.classList.remove('hidden');
 
-            // Scenario B: Evaluates format nodes selection inputs parameters
+            // Scenario B: Evaluate format nodes selection inputs parameters
             if(currentFormatType === "Single Page") {
                 totalPagesWrapperNode.classList.add('hidden');
                 dynamicLabelNode.innerText = "💰 Price Per Single Page (₹)";
@@ -173,7 +171,8 @@
         function convertFileToBase64(fileNode) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
-                reader.readAsDataURL(fileNode);
+                FileReader
+                                reader.readAsDataURL(fileNode);
                 reader.onload = () => resolve(reader.result);
                 reader.onerror = error => reject(error);
             });
@@ -201,7 +200,8 @@
             let filePages = 1;
             let price = 0;
 
-            const isFreeCategoryFlag = (category === "NCERT Books" || category === "Coaching Notes" || category === "PYQs Materials");
+            // UPDATED LOGIC: Checks against new category values
+            const isFreeCategoryFlag = (category === "NCERT solutions" || category === "Premium handwritten notes" || category === "PYQ");
 
             if(!isFreeCategoryFlag) {
                 price = parseFloat(document.getElementById('newProdPrice').value);
@@ -246,7 +246,7 @@
                     documentUrl: normalizedEmbedPdfUrl, 
                     placement: "center",
                     category: category,
-                    classCategory: classTarget, // Brand new index query parameter field node added safely
+                    classCategory: classTarget,
                     formatType: formatType,
                     totalPages: filePages,
                     timestamp: new Date().toISOString()
@@ -301,7 +301,8 @@
                             <td class="p-3">
                                 <div class="font-semibold text-gray-700">Class: ${order.class || "N/A"} | Sec: ${order.section || "N/A"}</div>
                                 <div class="text-[10px] text-gray-400 font-mono mt-0.5">Roll No: ${order.rollNumber || "N/A"}</div>
-                                <div class="text-[11px] text-gray-500 font-medium max-w-xs mt-1 bg-gray-50 p-1.5 rounded border border-gray-100 break-words">📍 ${order.address || "N/A"}</div>
+                                <div class="text-[11px] text-gray-500 font-medium max-w-xs mt-1 bg-gray-50 p-1.5 rounded border border-gray-100 break-words">📍 
+${order.address || "N/A"}</div>
                             </td>
                             <td class="p-3 whitespace-nowrap">
                                 <div class="font-black text-gray-900 text-sm">₹${order.amount} <span class="text-[10px] font-normal text-gray-400">(${order.quantity} pgs)</span></div>
@@ -335,8 +336,10 @@
         window.filterLiveOrders = function() {
             const queryText = document.getElementById('adminSearchField').value.trim().toLowerCase();
             document.querySelectorAll('.order-table-data-row').forEach((row) => {
-                const name = row.getAttribute('data-name') || ""; const utr = row.getAttribute('data-utr') || "";
-                if(name.includes(queryText) || utr.includes(queryText)) row.classList.remove('hidden'); else row.classList.add('hidden');
+                const name = row.getAttribute('data-name') || ""; 
+                const utr = row.getAttribute('data-utr') || "";
+                if(name.includes(queryText) || utr.includes(queryText)) row.classList.remove('hidden'); 
+                else row.classList.add('hidden');
             });
         };
     </script>
