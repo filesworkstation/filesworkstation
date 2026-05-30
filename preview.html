@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">  
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>  
 
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Courier+Prime:ital,wght=1,700&family=Inter:wght@800&family=Playfair+Display:ital,wght=1,700&display=swap" rel="stylesheet">  
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Courier+Prime:ital,wght=1,700&family=Inter:wght=800&family=Playfair+Display:ital,wght=1,700&display=swap" rel="stylesheet">  
 
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>  
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>  
@@ -87,6 +87,7 @@
 
     <div class="max-w-6xl mx-auto p-4 grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">  
 
+        <!-- LEFT PANEL: PDF / IMAGE VIEWER -->
         <div class="flex flex-col items-center justify-center w-full">  
             <div class="academic-page-container" id="gestureViewportContainer">  
                 <div id="canvasFrame" class="pdf-iframe-rigid-wrapper shadow-xs">  
@@ -116,7 +117,8 @@
             </div>  
         </div>  
 
-        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm h-fit">  
+        <!-- MIDDLE PANEL: PRICE AND ACTION BUTTON -->
+        <div id="productMainActionCard" class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm h-fit">  
             <a href="index.html" class="text-xs text-blue-600 font-semibold inline-block mb-3">  
                 ← Back to Shop  
             </a>  
@@ -161,13 +163,20 @@
 
             <div id="actionButtonTriggerArea">  
                 <button  
-                    onclick="window.processPaymentQR()"  
-                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3 rounded-lg shadow-md uppercase tracking-wider">  
+                    onclick="window.openDeliveryModal()"  
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3 rounded-lg shadow-md uppercase tracking-wider cursor-pointer transition-all">  
                     Order Now & Pay  
                 </button>  
             </div>  
+            
+            <!-- Hidden text after payment unlock -->
+            <div id="qrUnlockedNotice" class="hidden text-center p-2 bg-blue-50 border border-blue-200 rounded-lg mt-2">
+                <span class="text-[10px] font-black text-blue-700 uppercase tracking-wider">🔒 Form Locked / QR Unlocked</span>
+                <p class="text-[9px] text-gray-500 mt-0.5">Please check the payment panel to complete your transaction.</p>
+            </div>
         </div>  
 
+        <!-- RIGHT PANEL: PAYMENT GATEWAY SYSTEM -->
         <div id="paymentRightPanelWrapper" class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center justify-center min-h-[300px] h-fit w-full">  
             <div id="qrIdleState" class="text-gray-400 text-center p-4">  
                 <p class="text-xs font-medium">  
@@ -187,19 +196,73 @@
 
                 <div id="qrcodeWrapper" class="p-2 bg-white border rounded-xl mb-3"></div>  
 
-                <p class="text-xs text-gray-500 mb-4">  
+                <p class="text-xs text-gray-500 mb-3">  
                     Pay Exactly:  
                     <span class="text-gray-900 font-extrabold">  
                         ₹<span id="qrLockedAmount">0</span>  
                     </span>  
-                </p>  
+                </p>
+
+                <div class="w-full border-t pt-3 mt-1">
+                    <label class="block text-[10px] font-black text-purple-600 uppercase mb-1">✍️ Enter Payment UTR / Transaction ID</label>
+                    <input type="text" id="userPaymentUtr" placeholder="Enter 12-digit UTR number" class="w-full bg-gray-50 border rounded-lg p-2 text-xs focus:outline-none focus:border-purple-600 font-mono font-bold mb-2.5">
+                    <button onclick="window.submitFinalOrderToFirebase()" class="w-full bg-green-600 hover:bg-green-700 text-white font-black text-xs py-2.5 rounded-lg shadow-sm uppercase tracking-wider cursor-pointer transition-all">
+                        Verify & Submit Order 🚀
+                    </button>
+                </div>
             </div>  
         </div>  
 
     </div>  
 
+    <!-- POPUP MODAL FOR DELIVERY SPECIFICATIONS -->
+    <div id="deliveryFormModal" class="fixed inset-0 z-50 hidden bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl w-full max-w-md p-5 shadow-xl border border-gray-100 max-h-[90vh] overflow-y-auto">
+            <h3 class="text-sm font-black text-gray-900 uppercase tracking-wider mb-4 pb-2 border-b flex items-center gap-1.5">🚚 Delivery Specifications</h3>
+            
+            <div class="space-y-3.5">
+                <div>
+                    <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">👤 Student Full Name</label>
+                    <input type="text" id="formStudentName" placeholder="Enter your full name" class="w-full bg-gray-50 border rounded-lg p-2 text-xs focus:outline-none focus:border-blue-600 font-semibold">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">📞 WhatsApp Number</label>
+                    <input type="tel" id="formStudentPhone" placeholder="Enter 10 digit phone number" class="w-full bg-gray-50 border rounded-lg p-2 text-xs focus:outline-none focus:border-blue-600 font-semibold">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">🏛️ School / University / College</label>
+                    <input type="text" id="formStudentCollege" placeholder="e.g. GLA University, Agra College" class="w-full bg-gray-50 border rounded-lg p-2 text-xs focus:outline-none focus:border-blue-600 font-semibold">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">🎓 Course / Degree</label>
+                        <input type="text" id="formStudentCourse" placeholder="e.g. B.Tech, BCA" class="w-full bg-gray-50 border rounded-lg p-2 text-xs focus:outline-none focus:border-blue-600 font-semibold">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">🔢 Class Section</label>
+                        <input type="text" id="formStudentSection" placeholder="e.g. Section A, Sec-3" class="w-full bg-gray-50 border rounded-lg p-2 text-xs focus:outline-none focus:border-blue-600 font-semibold">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">🆔 Class Roll Number</label>
+                    <input type="text" id="formStudentRoll" placeholder="Enter university/class roll number" class="w-full bg-gray-50 border rounded-lg p-2 text-xs focus:outline-none focus:border-blue-600 font-semibold">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">📍 Full Delivery Address / Hostel Details</label>
+                    <textarea id="formStudentAddress" rows="2" placeholder="Hostel Name, Room Number, Sector, Landmark specifications..." class="w-full bg-gray-50 border rounded-lg p-2 text-xs focus:outline-none focus:border-blue-600 font-semibold resize-none"></textarea>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 mt-5 border-t pt-3">
+                <button onclick="window.closeDeliveryModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-bold py-2.5 rounded-xl uppercase tracking-wider cursor-pointer transition-all">Cancel</button>
+                <button onclick="window.processPaymentQR()" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-black py-2.5 rounded-xl uppercase tracking-wider cursor-pointer transition-all">Confirm</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module">  
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";  
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {  
             apiKey: "AIzaSyBC7S5uJd9izO5qOV8W40T7KtNvGEk6oIU",  
@@ -210,18 +273,19 @@
             appId: "1:922394201956:web:7d18af7a9027103c0ab471"  
         };  
 
-        initializeApp(firebaseConfig);  
+        const app = initializeApp(firebaseConfig);  
+        const db = getFirestore(app);
 
         let currentPageCount = 1;  
         let basePrice = parseInt(localStorage.getItem('selectedPrice')) || 5;  
         let currentProductTitle = localStorage.getItem('selectedTitle') || "Custom File Package";  
         let currentProductCategory = localStorage.getItem('selectedCategory') || "";  
-        
-        // INDEX FILE SE AANE VALA EXACT FORMAT TYPE
         let formatTypeFromStorage = localStorage.getItem('selectedFormatType') || "Full Booklet";
-
-        // Agar Format Type "Single Page" hai toh Unit "Page" rahegi, varna complete "File" rahegi
         let contentUnitType = (formatTypeFromStorage === "Single Page") ? "Page" : "File";
+
+        let timerIntervalNode = null;
+        let finalCalculatedAmount = 0;
+        let studentSavedDetailsObj = null;
 
         document.addEventListener("DOMContentLoaded", () => {  
             const targetDriveDocumentUrl = localStorage.getItem('deliverableFileUrl') || "";  
@@ -230,7 +294,6 @@
             const mainContainerCanvas = document.getElementById('canvasFrame');  
             const pdfScrollIndicator = document.getElementById('pdfScrollIndicator');  
 
-            // PDF DETECTION  
             const isPdfFile = targetDriveDocumentUrl.includes('drive.google.com') || targetDriveDocumentUrl.includes('.pdf');  
 
             if(isPdfFile){  
@@ -239,7 +302,6 @@
                 pdfScrollIndicator.classList.add('hidden');  
             }  
 
-            // PDF VIEWER  
             if(targetDriveDocumentUrl && targetDriveDocumentUrl.includes('drive.google.com')){  
                 let cleanEmbedTargetUrl = targetDriveDocumentUrl;  
                 if(cleanEmbedTargetUrl.includes('/view')){  
@@ -248,7 +310,6 @@
                 playerIframeElement.src = cleanEmbedTargetUrl;  
                 playerIframeElement.classList.remove('hidden');  
             }  
-            // IMAGE VIEWER  
             else {  
                 playerIframeElement.classList.add('hidden');  
                 if(targetDriveDocumentUrl && targetDriveDocumentUrl.startsWith('data:image')){  
@@ -261,15 +322,9 @@
                 mainContainerCanvas.style.backgroundRepeat = "no-repeat";  
             }  
 
-            // TITLE  
             document.getElementById('displayTitle').innerText = currentProductTitle;  
 
-            // FREE CATEGORY CONTROL
-            if(  
-                currentProductCategory === "NCERT Books" ||  
-                currentProductCategory === "Coaching Notes" ||  
-                currentProductCategory === "PYQs Materials"  
-            ){  
+            if(["NCERT solutions", "Premium handwritten notes", "PYQ"].includes(currentProductCategory)){  
                 document.getElementById('priceCalculatorWidget').innerHTML = `  
                     <div class="p-2 text-center bg-emerald-50 border border-emerald-200 rounded-lg">  
                         <span class="text-xs font-black text-emerald-700 uppercase tracking-wider">  
@@ -292,13 +347,11 @@
                 document.getElementById('paymentRightPanelWrapper').className = "hidden";  
             }  
             else {  
-                // Set the heading text dynamically based on the exact type
                 document.getElementById('quantityLabel').innerText = `Number of ${contentUnitType}s Needed`;  
                 refreshCalculations();  
             }  
         });  
 
-        // FREE DOWNLOAD  
         window.triggerDirectFreeDownload = function(){  
             const directPdfUrl = localStorage.getItem('deliverableFileUrl') || "#";  
             if(directPdfUrl !== "#"){  
@@ -306,7 +359,6 @@
             }  
         };  
 
-        // COUNTER ADJUSTMENT  
         window.adjustPages = function(modifier){  
             currentPageCount += modifier;  
             if(currentPageCount < 1){  
@@ -315,14 +367,24 @@
             refreshCalculations();  
         };  
 
-        // PRICE RE-CALCULATION WITH DYNAMIC TEXT Suffix
         function refreshCalculations(){  
-            const netSum = currentPageCount * basePrice;  
+            finalCalculatedAmount = currentPageCount * basePrice;  
             const unitSuffix = currentPageCount > 1 ? `${contentUnitType}s` : contentUnitType;
 
             document.getElementById('pageCount').innerText = `${currentPageCount} ${unitSuffix}`;  
-            document.getElementById('totalAmount').innerText = netSum;  
+            document.getElementById('totalAmount').innerText = finalCalculatedAmount;  
         }  
-    </script>  
-</body>  
-</html>
+
+        // MODAL TOGGLES
+        window.openDeliveryModal = function() {
+            document.getElementById('deliveryFormModal').classList.remove('hidden');
+        };
+
+        window.closeDeliveryModal = function() {
+            document.getElementById('deliveryFormModal').classList.add('hidden');
+        };
+
+        // QR CODE LOGIC & INITIALIZATION
+        window.processPaymentQR = function() {
+            const name = document.getElementById('formStudentName').value.trim();
+            const phone = document
