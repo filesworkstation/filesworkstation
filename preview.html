@@ -1,487 +1,328 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">  
+    <title>Document Viewer - File Work Station</title>  
 
-    <title>Document Viewer - File Work Station</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">  
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>  
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Courier+Prime:ital,wght=1,700&family=Inter:wght@800&family=Playfair+Display:ital,wght=1,700&display=swap" rel="stylesheet">  
 
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&family=Courier+Prime:ital,wght=1,700&family=Inter:wght@800&family=Playfair+Display:ital,wght=1,700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>  
 
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>  
+        .academic-page-container{  
+            width:100%!important;  
+            display:flex;  
+            flex-direction:column;  
+            justify-content:center;  
+            padding:0!important;  
+            box-sizing:border-box;  
+        }  
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+        .pdf-iframe-rigid-wrapper{  
+            width:100%!important;  
+            min-height:480px!important;  
+            height:auto!important;  
+            aspect-ratio:3 / 4.2!important;  
+            position:relative!important;  
+            border-radius:12px;  
+            overflow:hidden!important;  
+            background-color:#ffffff;  
+            border:1px solid #e5e7eb;  
+            box-sizing:border-box!important;  
+        }  
 
-    <style>
+        .pdf-iframe-element-embedded{  
+            width:100%!important;  
+            height:100%!important;  
+            border:0!important;  
+            position:absolute!important;  
+            top:0!important;  
+            left:0!important;  
+            z-index:10!important;  
+        }  
 
-        .academic-page-container{
-            width:100%!important;
-            display:flex;
-            flex-direction:column;
-            justify-content:center;
-            padding:0!important;
-            box-sizing:border-box;
-        }
+        .master-locked-watermark{  
+            position:absolute;  
+            inset:0;  
+            display:flex;  
+            align-items:center;  
+            justify-content:center;  
+            overflow:hidden;  
+            pointer-events:none;  
+            z-index:30;  
+            user-select:none;  
+        }  
 
-        .pdf-iframe-rigid-wrapper{
-            width:100%!important;
-            min-height:480px!important;
-            height:auto!important;
-            aspect-ratio:3 / 4.2!important;
-            position:relative!important;
-            border-radius:12px;
-            overflow:hidden!important;
-            background-color:#ffffff;
-            border:1px solid #e5e7eb;
-            box-sizing:border-box!important;
-        }
+        .bold-watermark-text{  
+            font-size:1.6rem;  
+            font-weight:900;  
+            font-family:'Inter',sans-serif;  
+            color:rgba(30,64,175,0.10);  
+            transform:rotate(-35deg);  
+            white-space:nowrap;  
+            letter-spacing:0.1em;  
+        }  
 
-        .pdf-iframe-element-embedded{
-            width:100%!important;
-            height:100%!important;
-            border:0!important;
-            position:absolute!important;
-            top:0!important;
-            left:0!important;
-            z-index:10!important;
-        }
+        @keyframes blinker{  
+            50%{ opacity:0.4; }  
+        }  
 
-        .master-locked-watermark{
-            position:absolute;
-            inset:0;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-            overflow:hidden;
-            pointer-events:none;
-            z-index:30;
-            user-select:none;
-        }
-
-        .bold-watermark-text{
-            font-size:1.6rem;
-            font-weight:900;
-            font-family:'Inter',sans-serif;
-            color:rgba(30,64,175,0.10);
-            transform:rotate(-35deg);
-            white-space:nowrap;
-            letter-spacing:0.1em;
-        }
-
-        @keyframes blinker{
-            50%{
-                opacity:0.4;
-            }
-        }
-
-        .timer-blink{
-            animation:blinker 1s linear infinite;
-        }
-
+        .timer-blink{  
+            animation:blinker 1s linear infinite;  
+        }  
     </style>
-</head>
-
-<body class="bg-gray-50 text-gray-800 font-sans min-h-screen relative">
-
-    <!-- NAVBAR -->
-
-    <nav class="p-3 border-b border-gray-200 bg-white flex justify-center items-center shadow-sm">
-
-        <h1 class="text-xl font-black tracking-widest text-blue-600">
-            FILE WORK STATION
-        </h1>
-
-    </nav>
-
-    <!-- MAIN -->
-
-    <div class="max-w-6xl mx-auto p-4 grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">
-
-        <!-- LEFT SECTION -->
-
-        <div class="flex flex-col items-center justify-center w-full">
-
-            <div class="academic-page-container" id="gestureViewportContainer">
-
-                <div id="canvasFrame" class="pdf-iframe-rigid-wrapper shadow-xs">
-
-                    <div class="master-locked-watermark">
-
-                        <div class="bold-watermark-text">
-                            FILE WORK STATION
-                        </div>
-
-                    </div>
-
-                    <iframe
-                        id="googleDrivePdfPlayer"
-                        src=""
-                        class="pdf-iframe-element-embedded hidden"
-                        allow="autoplay">
-                    </iframe>
-
-                </div>
-
-                <!-- PDF SCROLL INDICATOR -->
-
-                <div
-                    id="pdfScrollIndicator"
-                    class="hidden w-full flex justify-center items-center mt-3">
-
-                    <div class="flex flex-col items-center animate-bounce">
-
-                        <span class="text-[10px] font-black uppercase tracking-[3px] text-blue-600">
-                            Scroll Down
-                        </span>
-
-                        <span class="text-xl text-blue-600 mt-0.5">
-                            ↓
-                        </span>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <!-- CENTER SECTION -->
-
-        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm h-fit">
-
-            <a href="index.html" class="text-xs text-blue-600 font-semibold inline-block mb-3">
-                ← Back to Shop
-            </a>
-
-            <h2 id="displayTitle" class="text-sm font-bold text-gray-900 mb-1">
-                Loading Title Frame...
-            </h2>
-
-            <!-- PRICE -->
-
-            <div id="priceCalculatorWidget" class="mb-5 bg-gray-50 p-4 rounded-xl border border-gray-200 mt-4">
-
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-2">
-                    Number of Pages Needed
-                </label>
-
-                <div class="flex items-center gap-4 mb-3">
-
-                    <button
-                        onclick="window.adjustPages(-1)"
-                        class="bg-white border px-3 py-1 rounded text-xs font-bold hover:bg-gray-100">
-                        -
-                    </button>
-
-                    <span id="pageCount" class="text-sm font-black text-blue-600">
-                        1
-                    </span>
-
-                    <button
-                        onclick="window.adjustPages(1)"
-                        class="bg-white border px-3 py-1 rounded text-xs font-bold hover:bg-gray-100">
-                        +
-                    </button>
-
-                </div>
-
-                <div class="flex justify-between border-t pt-2 text-xs font-medium">
-
-                    <span class="text-gray-500">
-                        Total Amount:
-                    </span>
-
-                    <span class="font-bold text-green-600">
-                        ₹<span id="totalAmount">0</span>
-                    </span>
-
-                </div>
-
-            </div>
-
-            <!-- ORDER BUTTON -->
-
-            <div id="actionButtonTriggerArea">
-
-                <button
-                    onclick="window.processPaymentQR()"
-                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3 rounded-lg shadow-md uppercase tracking-wider">
-
-                    Order Now & Pay
-
-                </button>
-
-            </div>
-
-        </div>
-
-        <!-- RIGHT SECTION -->
-
-        <div
-            id="paymentRightPanelWrapper"
-            class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center justify-center min-h-[300px] h-fit w-full">
-
-            <div id="qrIdleState" class="text-gray-400 text-center p-4">
-
-                <p class="text-xs font-medium">
-                    Complete delivery specifics to initialize merchant secure transaction flow window.
-                </p>
-
-            </div>
-
-            <div id="qrActiveState" class="hidden w-full flex flex-col items-center">
-
-                <div class="w-full bg-amber-50 border border-amber-200 rounded-lg p-2 mb-3 text-center flex justify-center items-center gap-1.5 shadow-2xs">
-
-                    <span class="text-[10px] font-black text-amber-700 uppercase tracking-wider">
-                        Session Expires In:
-                    </span>
-
-                    <span id="liveTimerCountdown" class="text-xs font-black text-amber-600 timer-blink font-mono">
-                        02:30
-                    </span>
-
-                </div>
-
-                <div id="qrcodeWrapper" class="p-2 bg-white border rounded-xl mb-3"></div>
-
-                <p class="text-xs text-gray-500 mb-4">
-
-                    Pay Exactly:
-                    <span class="text-gray-900 font-extrabold">
-                        ₹<span id="qrLockedAmount">0</span>
-                    </span>
-
-                </p>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <!-- SCRIPT -->
-
-    <script type="module">
-
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyBC7S5uJd9izO5qOV8W40T7KtNvGEk6oIU",
-            authDomain: "filesworkstation-b3074.firebaseapp.com",
-            projectId: "filesworkstation-b3074",
-            storageBucket: "filesworkstation-b3074.firebasestorage.app",
-            messagingSenderId: "922394201956",
-            appId: "1:922394201956:web:7d18af7a9027103c0ab471"
-        };
-
-        initializeApp(firebaseConfig);
-
-        let currentPageCount = 1;
-
-        let basePrice =
-            parseInt(localStorage.getItem('selectedPrice')) || 5;
-
-        let currentProductTitle =
-            localStorage.getItem('selectedTitle') || "Custom File Package";
-
-        let currentProductCategory =
-            localStorage.getItem('selectedCategory') || "";
-
-        document.addEventListener("DOMContentLoaded", () => {
-
-            const targetDriveDocumentUrl =
-                localStorage.getItem('deliverableFileUrl') || "";
-
-            const fallbackCardThumbUrl =
-                localStorage.getItem('shopImageUrl') || "";
-
-            const playerIframeElement =
-                document.getElementById('googleDrivePdfPlayer');
-
-            const mainContainerCanvas =
-                document.getElementById('canvasFrame');
-
-            const pdfScrollIndicator =
-                document.getElementById('pdfScrollIndicator');
-
-            // PDF DETECTION
-
-            const isPdfFile =
-                targetDriveDocumentUrl.includes('drive.google.com') ||
-                targetDriveDocumentUrl.includes('.pdf');
-
-            // SHOW SCROLL ONLY FOR PDF
-
-            if(isPdfFile){
-
-                pdfScrollIndicator.classList.remove('hidden');
-
-            } else {
-
-                pdfScrollIndicator.classList.add('hidden');
-
-            }
-
-            // PDF VIEWER
-
-            if(
-                targetDriveDocumentUrl &&
-                targetDriveDocumentUrl.includes('drive.google.com')
-            ){
-
-                let cleanEmbedTargetUrl =
-                    targetDriveDocumentUrl;
-
-                if(cleanEmbedTargetUrl.includes('/view')){
-
-                    cleanEmbedTargetUrl =
-                        cleanEmbedTargetUrl.replace('/view','/preview');
-
-                }
-
-                playerIframeElement.src =
-                    cleanEmbedTargetUrl;
-
-                playerIframeElement.classList.remove('hidden');
-
-            }
-
-            // IMAGE VIEWER
-
-            else{
-
-                playerIframeElement.classList.add('hidden');
-
-                if(
-                    targetDriveDocumentUrl &&
-                    targetDriveDocumentUrl.startsWith('data:image')
-                ){
-
-                    mainContainerCanvas.style.backgroundImage =
-                        `url('${targetDriveDocumentUrl}')`;
-
-                }
-
-                else if(fallbackCardThumbUrl){
-
-                    mainContainerCanvas.style.backgroundImage =
-                        `url('${fallbackCardThumbUrl}')`;
-
-                }
-
-                mainContainerCanvas.style.backgroundSize =
-                    "contain";
-
-                mainContainerCanvas.style.backgroundPosition =
-                    "center";
-
-                mainContainerCanvas.style.backgroundRepeat =
-                    "no-repeat";
-
-            }
-
-            // TITLE
-
-            document.getElementById('displayTitle').innerText =
-                currentProductTitle;
-
-            // FREE CATEGORY
-
-            if(
-                currentProductCategory === "NCERT Books" ||
-                currentProductCategory === "Coaching Notes" ||
-                currentProductCategory === "PYQs Materials"
-            ){
-
-                document.getElementById('priceCalculatorWidget').innerHTML = `
-                    <div class="p-2 text-center bg-emerald-50 border border-emerald-200 rounded-lg">
-
-                        <span class="text-xs font-black text-emerald-700 uppercase tracking-wider">
-                            🎉 FWS FREE ACADEMIC TRAFFIC REWARDS
-                        </span>
-
-                        <p class="text-[10px] text-emerald-600 font-medium mt-0.5">
-                            This official material asset is 100% unlocked for infinite downloads.
-                        </p>
-
-                    </div>
-                `;
-
-                document.getElementById('actionButtonTriggerArea').innerHTML = `
-                    <button
-                        onclick="window.triggerDirectFreeDownload()"
-                        class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs py-3 rounded-lg shadow-md uppercase tracking-wider cursor-pointer transition-all animate-bounce">
-
-                        📥 Download Free Material Now
-
-                    </button>
-                `;
-
-                document.getElementById('paymentRightPanelWrapper').className =
-                    "hidden";
-
-            }
-
-            else{
-
-                refreshCalculations();
-
-            }
-
-        });
-
-        // FREE DOWNLOAD
-
-        window.triggerDirectFreeDownload = function(){
-
-            const directPdfUrl =
-                localStorage.getItem('deliverableFileUrl') || "#";
-
-            if(directPdfUrl !== "#"){
-
-                window.open(directPdfUrl,'_blank');
-
-            }
-
-        };
-
-        // PAGE COUNTER
-
-        window.adjustPages = function(modifier){
-
-            currentPageCount += modifier;
-
-            if(currentPageCount < 1){
-
-                currentPageCount = 1;
-
-            }
-
-            refreshCalculations();
-
-        };
-
-        // PRICE
-
-        function refreshCalculations(){
-
-            const netSum =
-                currentPageCount * basePrice;
-
-            document.getElementById('pageCount').innerText =
-                currentPageCount;
-
-            document.getElementById('totalAmount').innerText =
-                netSum;
-
-        }
-
-    </script>
-
-</body>
+</head>  
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen relative">  
+
+    <nav class="p-3 border-b border-gray-200 bg-white flex justify-center items-center shadow-sm">  
+        <h1 class="text-xl font-black tracking-widest text-blue-600">  
+            FILE WORK STATION  
+        </h1>  
+    </nav>  
+
+    <div class="max-w-6xl mx-auto p-4 grid grid-cols-1 md:grid-cols-3 gap-6 mt-2">  
+
+        <div class="flex flex-col items-center justify-center w-full">  
+            <div class="academic-page-container" id="gestureViewportContainer">  
+                <div id="canvasFrame" class="pdf-iframe-rigid-wrapper shadow-xs">  
+                    <div class="master-locked-watermark">  
+                        <div class="bold-watermark-text">  
+                            FILE WORK STATION  
+                        </div>  
+                    </div>  
+                    <iframe  
+                        id="googleDrivePdfPlayer"  
+                        src=""  
+                        class="pdf-iframe-element-embedded hidden"  
+                        allow="autoplay">  
+                    </iframe>  
+                </div>  
+
+                <div id="pdfScrollIndicator" class="hidden w-full flex justify-center items-center mt-3">  
+                    <div class="flex flex-col items-center animate-bounce">  
+                        <span class="text-[10px] font-black uppercase tracking-[3px] text-blue-600">  
+                            Scroll Down  
+                        </span>  
+                        <span class="text-xl text-blue-600 mt-0.5">  
+                            ↓  
+                        </span>  
+                    </div>  
+                </div>  
+            </div>  
+        </div>  
+
+        <div class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm h-fit">  
+            <a href="index.html" class="text-xs text-blue-600 font-semibold inline-block mb-3">  
+                ← Back to Shop  
+            </a>  
+
+            <h2 id="displayTitle" class="text-sm font-bold text-gray-900 mb-1">  
+                Loading Title Frame...  
+            </h2>  
+
+            <div id="priceCalculatorWidget" class="mb-5 bg-gray-50 p-4 rounded-xl border border-gray-200 mt-4">  
+                
+                <label id="quantityLabel" class="block text-xs font-bold text-gray-500 uppercase mb-2">  
+                    QUANTITY NEEDED  
+                </label>  
+
+                <div class="flex items-center gap-4 mb-3">  
+                    <button  
+                        onclick="window.adjustPages(-1)"  
+                        class="bg-white border px-3 py-1 rounded text-xs font-bold hover:bg-gray-100">  
+                        -  
+                    </button>  
+
+                    <span id="pageCount" class="text-sm font-black text-blue-600">  
+                        1  
+                    </span>  
+
+                    <button  
+                        onclick="window.adjustPages(1)"  
+                        class="bg-white border px-3 py-1 rounded text-xs font-bold hover:bg-gray-100">  
+                        +  
+                    </button>  
+                </div>  
+
+                <div class="flex justify-between border-t pt-2 text-xs font-medium">  
+                    <span class="text-gray-500">  
+                        Total Amount:  
+                    </span>  
+                    <span class="font-bold text-green-600">  
+                        ₹<span id="totalAmount">0</span>  
+                    </span>  
+                </div>  
+            </div>  
+
+            <div id="actionButtonTriggerArea">  
+                <button  
+                    onclick="window.processPaymentQR()"  
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-3 rounded-lg shadow-md uppercase tracking-wider">  
+                    Order Now & Pay  
+                </button>  
+            </div>  
+        </div>  
+
+        <div id="paymentRightPanelWrapper" class="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex flex-col items-center justify-center min-h-[300px] h-fit w-full">  
+            <div id="qrIdleState" class="text-gray-400 text-center p-4">  
+                <p class="text-xs font-medium">  
+                    Complete delivery specifics to initialize merchant secure transaction flow window.  
+                </p>  
+            </div>  
+
+            <div id="qrActiveState" class="hidden w-full flex flex-col items-center">  
+                <div class="w-full bg-amber-50 border border-amber-200 rounded-lg p-2 mb-3 text-center flex justify-center items-center gap-1.5 shadow-2xs">  
+                    <span class="text-[10px] font-black text-amber-700 uppercase tracking-wider">  
+                        Session Expires In:  
+                    </span>  
+                    <span id="liveTimerCountdown" class="text-xs font-black text-amber-600 timer-blink font-mono">  
+                        02:30  
+                    </span>  
+                </div>  
+
+                <div id="qrcodeWrapper" class="p-2 bg-white border rounded-xl mb-3"></div>  
+
+                <p class="text-xs text-gray-500 mb-4">  
+                    Pay Exactly:  
+                    <span class="text-gray-900 font-extrabold">  
+                        ₹<span id="qrLockedAmount">0</span>  
+                    </span>  
+                </p>  
+            </div>  
+        </div>  
+
+    </div>  
+
+    <script type="module">  
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";  
+
+        const firebaseConfig = {  
+            apiKey: "AIzaSyBC7S5uJd9izO5qOV8W40T7KtNvGEk6oIU",  
+            authDomain: "filesworkstation-b3074.firebaseapp.com",  
+            projectId: "filesworkstation-b3074",  
+            storageBucket: "filesworkstation-b3074.firebasestorage.app",  
+            messagingSenderId: "922394201956",  
+            appId: "1:922394201956:web:7d18af7a9027103c0ab471"  
+        };  
+
+        initializeApp(firebaseConfig);  
+
+        let currentPageCount = 1;  
+        let basePrice = parseInt(localStorage.getItem('selectedPrice')) || 5;  
+        let currentProductTitle = localStorage.getItem('selectedTitle') || "Custom File Package";  
+        let currentProductCategory = localStorage.getItem('selectedCategory') || "";  
+        
+        // INDEX FILE SE AANE VALA EXACT FORMAT TYPE
+        let formatTypeFromStorage = localStorage.getItem('selectedFormatType') || "Full Booklet";
+
+        // Agar Format Type "Single Page" hai toh Unit "Page" rahegi, varna complete "File" rahegi
+        let contentUnitType = (formatTypeFromStorage === "Single Page") ? "Page" : "File";
+
+        document.addEventListener("DOMContentLoaded", () => {  
+            const targetDriveDocumentUrl = localStorage.getItem('deliverableFileUrl') || "";  
+            const fallbackCardThumbUrl = localStorage.getItem('shopImageUrl') || "";  
+            const playerIframeElement = document.getElementById('googleDrivePdfPlayer');  
+            const mainContainerCanvas = document.getElementById('canvasFrame');  
+            const pdfScrollIndicator = document.getElementById('pdfScrollIndicator');  
+
+            // PDF DETECTION  
+            const isPdfFile = targetDriveDocumentUrl.includes('drive.google.com') || targetDriveDocumentUrl.includes('.pdf');  
+
+            if(isPdfFile){  
+                pdfScrollIndicator.classList.remove('hidden');  
+            } else {  
+                pdfScrollIndicator.classList.add('hidden');  
+            }  
+
+            // PDF VIEWER  
+            if(targetDriveDocumentUrl && targetDriveDocumentUrl.includes('drive.google.com')){  
+                let cleanEmbedTargetUrl = targetDriveDocumentUrl;  
+                if(cleanEmbedTargetUrl.includes('/view')){  
+                    cleanEmbedTargetUrl = cleanEmbedTargetUrl.replace('/view','/preview');  
+                }  
+                playerIframeElement.src = cleanEmbedTargetUrl;  
+                playerIframeElement.classList.remove('hidden');  
+            }  
+            // IMAGE VIEWER  
+            else {  
+                playerIframeElement.classList.add('hidden');  
+                if(targetDriveDocumentUrl && targetDriveDocumentUrl.startsWith('data:image')){  
+                    mainContainerCanvas.style.backgroundImage = `url('${targetDriveDocumentUrl}')`;  
+                } else if(fallbackCardThumbUrl){  
+                    mainContainerCanvas.style.backgroundImage = `url('${fallbackCardThumbUrl}')`;  
+                }  
+                mainContainerCanvas.style.backgroundSize = "contain";  
+                mainContainerCanvas.style.backgroundPosition = "center";  
+                mainContainerCanvas.style.backgroundRepeat = "no-repeat";  
+            }  
+
+            // TITLE  
+            document.getElementById('displayTitle').innerText = currentProductTitle;  
+
+            // FREE CATEGORY CONTROL
+            if(  
+                currentProductCategory === "NCERT Books" ||  
+                currentProductCategory === "Coaching Notes" ||  
+                currentProductCategory === "PYQs Materials"  
+            ){  
+                document.getElementById('priceCalculatorWidget').innerHTML = `  
+                    <div class="p-2 text-center bg-emerald-50 border border-emerald-200 rounded-lg">  
+                        <span class="text-xs font-black text-emerald-700 uppercase tracking-wider">  
+                            🎉 FWS FREE ACADEMIC TRAFFIC REWARDS  
+                        </span>  
+                        <p class="text-[10px] text-emerald-600 font-medium mt-0.5">  
+                            This official material asset is 100% unlocked for infinite downloads.  
+                        </p>  
+                    </div>  
+                `;  
+
+                document.getElementById('actionButtonTriggerArea').innerHTML = `  
+                    <button  
+                        onclick="window.triggerDirectFreeDownload()"  
+                        class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs py-3 rounded-lg shadow-md uppercase tracking-wider cursor-pointer transition-all animate-bounce">  
+                        📥 Download Free Material Now  
+                    </button>  
+                `;  
+
+                document.getElementById('paymentRightPanelWrapper').className = "hidden";  
+            }  
+            else {  
+                // Set the heading text dynamically based on the exact type
+                document.getElementById('quantityLabel').innerText = `Number of ${contentUnitType}s Needed`;  
+                refreshCalculations();  
+            }  
+        });  
+
+        // FREE DOWNLOAD  
+        window.triggerDirectFreeDownload = function(){  
+            const directPdfUrl = localStorage.getItem('deliverableFileUrl') || "#";  
+            if(directPdfUrl !== "#"){  
+                window.open(directPdfUrl,'_blank');  
+            }  
+        };  
+
+        // COUNTER ADJUSTMENT  
+        window.adjustPages = function(modifier){  
+            currentPageCount += modifier;  
+            if(currentPageCount < 1){  
+                currentPageCount = 1;  
+            }  
+            refreshCalculations();  
+        };  
+
+        // PRICE RE-CALCULATION WITH DYNAMIC TEXT Suffix
+        function refreshCalculations(){  
+            const netSum = currentPageCount * basePrice;  
+            const unitSuffix = currentPageCount > 1 ? `${contentUnitType}s` : contentUnitType;
+
+            document.getElementById('pageCount').innerText = `${currentPageCount} ${unitSuffix}`;  
+            document.getElementById('totalAmount').innerText = netSum;  
+        }  
+    </script>  
+</body>  
 </html>
