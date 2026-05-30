@@ -387,4 +387,136 @@
         // QR CODE LOGIC & INITIALIZATION
         window.processPaymentQR = function() {
             const name = document.getElementById('formStudentName').value.trim();
-            const phone = document
+            const phone = document.getElementById('formStudentPhone').value.trim();
+            const college = document.getElementById('formStudentCollege').value.trim();
+            const course = document.getElementById('formStudentCourse').value.trim();
+            const section = document.getElementById('formStudentSection').value.trim();
+            const roll = document.getElementById('formStudentRoll').value.trim();
+            const address = document.getElementById('formStudentAddress').value.trim();
+
+            if(!name || !phone || !college || !course || !section || !roll || !address) {
+                alert("⚠️ Please fill out all delivery specification details before continuing!");
+                return;
+            }
+
+            if(phone.length < 10) {
+                alert("⚠️ Please enter a valid 10-digit WhatsApp number!");
+                return;
+            }
+
+            studentSavedDetailsObj = { name, phone, college, course, section, roll, address };
+            
+            window.closeDeliveryModal();
+
+            // Hide original Order Now trigger and show locked notice
+            document.getElementById('actionButtonTriggerArea').classList.add('hidden');
+            document.getElementById('qrUnlockedNotice').classList.remove('hidden');
+
+            document.getElementById('qrIdleState').classList.add('hidden');
+            document.getElementById('qrActiveState').classList.remove('hidden');
+            document.getElementById('qrLockedAmount').innerText = finalCalculatedAmount;
+
+            const qrWrapper = document.getElementById('qrcodeWrapper');
+            qrWrapper.innerHTML = "";
+
+            // UPI Format URL Generation
+            const upiId = "adityahard@fam";
+            const cleanTitle = encodeURIComponent(currentProductTitle.substring(0,20));
+            const upiUrl = `upi://pay?pa=${upiId}&pn=FileWorkStation&tn=${cleanTitle}&am=${finalCalculatedAmount}&cu=INR`;
+
+            new QRCode(qrWrapper, {
+                text: upiUrl,
+                width: 150,
+                height: 150,
+                colorDark: "#000000",
+                colorLight: "#ffffff"
+            });
+
+            startPaymentCountdownTimer();
+
+            // Smoothly scroll view viewport directly to payment panel for mobile users
+            setTimeout(() => {
+                document.getElementById('paymentRightPanelWrapper').scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+            }, 300);
+        };
+
+        function startPaymentCountdownTimer() {
+            if(timerIntervalNode) clearInterval(timerIntervalNode);
+            let timeAllocated = 150; // 2 minutes 30 seconds
+            const display = document.getElementById('liveTimerCountdown');
+
+            timerIntervalNode = setInterval(() => {
+                let minutes = Math.floor(timeAllocated / 60);
+                let seconds = timeAllocated % 60;
+
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                display.innerText = `${minutes}:${seconds}`;
+
+                if (--timeAllocated < 0) {
+                    clearInterval(timerIntervalNode);
+                    alert("⏰ Transaction window session expired. Please regenerate payment token.");
+                    document.getElementById('qrActiveState').classList.add('hidden');
+                    document.getElementById('qrIdleState').classList.remove('hidden');
+                    
+                    // Reset Button States if expired
+                    document.getElementById('actionButtonTriggerArea').classList.remove('hidden');
+                    document.getElementById('qrUnlockedNotice').classList.add('hidden');
+                }
+            }, 1000);
+        }
+
+        // SUBMIT AND SEND ORDER TO FIREBASE
+        window.submitFinalOrderToFirebase = async function() {
+            const utrValue = document.getElementById('userPaymentUtr').value.trim();
+            if(!utrValue || utrValue.length < 6) {
+                alert("⚠️ Please enter a valid Payment UTR / Transaction ID received after paying!");
+                return;
+            }
+
+            if(!studentSavedDetailsObj) {
+                alert("⚠️ Session missing user specifics. Please refill form.");
+                return;
+            }
+
+            const uniqueGeneratedOrderId = "FWS" + Math.floor(100000 + Math.random() * 900000);
+            const masterFileUrlPointer = localStorage.getItem('deliverableFileUrl') || "#";
+
+            try {
+                await addDoc(collection(db, "orders"), {
+                    orderId: uniqueGeneratedOrderId,
+                    item: currentProductTitle,
+                    amount: finalCalculatedAmount,
+                    quantity: currentPageCount,
+                    name: studentSavedDetailsObj.name,
+                    phone: studentSavedDetailsObj.phone,
+                    college: studentSavedDetailsObj.college,
+                    class: studentSavedDetailsObj.course,
+                    section: studentSavedDetailsObj.section,
+                    rollNumber: studentSavedDetailsObj.roll,
+                    address: studentSavedDetailsObj.address,
+                    utr: utrValue,
+                    status: "Pending",
+                    downloadUrl: masterFileUrlPointer,
+                    timestamp: new Date().toISOString()
+                });
+
+                let localOrdersCache = JSON.parse(localStorage.getItem('myFwsOrders')) || [];
+                localOrdersCache.push(uniqueGeneratedOrderId);
+                localStorage.setItem('myFwsOrders', JSON.stringify(localOrdersCache));
+
+                if(timerIntervalNode) clearInterval(timerIntervalNode);
+                alert(`🎉 Order Placed Successfully!\nYour Order ID: ${uniqueGeneratedOrderId}\nTracking under user dashboard.`);
+                window.location.href = 'dashboard.html';
+
+            } catch (error) {
+                alert("Database insertion pipeline failed: " + error.message);
+            }
+        };
+    </script>  
+</body>  
+</html>
