@@ -4,35 +4,51 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>File Work Station - Premium Academic Templates</title>
-    <!-- Tailwind CSS v4 -->
+
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
     <style>
-        .product-card { transition: all 0.2s ease-in-out; cursor: pointer; }
-        .product-card:hover { transform: translateY(-2px); box-shadow: 0 8px 16px -6px rgba(0, 0, 0, 0.08); }
-        /* Hide scrollbar for Chrome, Safari and Opera */
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        /* Hide scrollbar for IE, Edge and Firefox */
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .product-card {
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px -6px rgba(0, 0, 0, 0.08);
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
     </style>
 </head>
+
 <body class="bg-gray-50 text-gray-800 font-sans min-h-screen">
 
-    <!-- Navigation Bar -->
     <nav class="sticky top-0 z-50 border-b border-gray-200 bg-white/90 backdrop-blur-md px-4 py-2.5 flex justify-between items-center shadow-sm">
-        <div class="w-10"></div> 
+        <div class="w-10"></div>
         <div class="text-center flex-grow">
-            <h1 class="text-xl font-black tracking-widest text-blue-600 leading-none">FILE WORK STATION</h1>
-            <span class="text-[9px] font-bold tracking-widest text-gray-400 block uppercase mt-0.5">Premium Academic Templates</span>
+            <h1 class="text-xl font-black tracking-widest text-blue-600 leading-none">
+                FILE WORK STATION
+            </h1>
+            <span class="text-[9px] font-bold tracking-widest text-gray-400 block uppercase mt-0.5">
+                Premium Academic Templates
+            </span>
         </div>
         <div class="text-right">
-            <!-- Dynamic Cart Badge Inside My Orders Link -->
             <a href="dashboard.html" class="inline-flex items-center gap-1 bg-blue-50 text-blue-600 text-[10px] font-bold px-2.5 py-1.5 rounded-lg border border-blue-200 transition-all hover:bg-blue-100">
-                My Orders 📦 <span id="navCartCount" class="bg-blue-600 text-white rounded-full px-1.5 py-0.2 text-[8px] ml-1 hidden">0</span>
+                My Orders 📦
+                <span id="navCartCount" class="bg-blue-600 text-white rounded-full px-1.5 py-0.2 text-[8px] ml-1 hidden">0</span>
             </a>
         </div>
     </nav>
 
-    <!-- Social Connect Links -->
     <div class="max-w-6xl mx-auto px-4 mt-4 grid grid-cols-2 gap-2 text-center">
         <a href="https://wa.me/919457906960?text=Hello%20File%20Work%20Station%2C%20I%20have%20a%20query%20about%20my%20order." target="_blank" class="flex items-center justify-center gap-1.5 bg-green-50 text-green-700 border border-green-200 font-black text-[10px] uppercase tracking-wider py-2 rounded-xl shadow-xs hover:bg-green-100 transition-all">
             💬 Join WhatsApp Chat
@@ -42,78 +58,61 @@
         </a>
     </div>
 
-    <!-- Header Hero Banner -->
     <header class="pt-6 pb-4 px-6 text-center max-w-3xl mx-auto">
-        <h2 class="text-2xl font-black md:text-4xl tracking-tight text-gray-900 mb-1">Premium Print-Ready <span class="text-blue-600">Academic Files</span></h2>
-        <p class="text-gray-500 text-xs md:text-sm max-w-lg mx-auto">High-quality practical pages, indices, and front sheets for academic submissions.</p>
+        <h2 class="text-2xl font-black md:text-4xl tracking-tight text-gray-900 mb-1">
+            Premium Print-Ready <span class="text-blue-600">Academic Files</span>
+        </h2>
+        <p class="text-gray-500 text-xs md:text-sm max-w-lg mx-auto">
+            High-quality practical pages, indices, and front sheets for academic submissions.
+        </p>
     </header>
 
-    <!-- Categories Dynamic Filter Row (UPDATED: Exactly 5 New Admin Categories) -->
     <div class="max-w-6xl mx-auto px-4 mb-2">
         <div class="flex gap-1.5 overflow-x-auto pb-2 pt-1 no-scrollbar snap-x">
-            <button data-category="ALL" onclick="window.switchCategoryFilter('ALL', this)" class="category-filter-btn snap-center shrink-0 bg-blue-600 text-white text-[10px] font-black px-3.5 py-2 rounded-xl border border-blue-600 transition-all cursor-pointer uppercase tracking-wider shadow-xs">
-                🌐 Show All
-            </button>
-            <button data-category="Project file" onclick="window.switchCategoryFilter('Project file', this)" class="category-filter-btn snap-center shrink-0 bg-white hover:bg-gray-50 text-gray-600 text-[10px] font-bold px-3.5 py-2 rounded-xl border border-gray-200 transition-all cursor-pointer uppercase tracking-wider">
-                📁 Project Files
-            </button>
-            <button data-category="Practical file" onclick="window.switchCategoryFilter('Practical file', this)" class="category-filter-btn snap-center shrink-0 bg-white hover:bg-gray-50 text-gray-600 text-[10px] font-bold px-3.5 py-2 rounded-xl border border-gray-200 transition-all cursor-pointer uppercase tracking-wider">
-                📚 Practical Files
-            </button>
-            <button data-category="PYQ" onclick="window.switchCategoryFilter('PYQ', this)" class="category-filter-btn snap-center shrink-0 bg-white hover:bg-gray-50 text-emerald-600 text-[10px] font-bold px-3.5 py-2 rounded-xl border border-gray-200 transition-all cursor-pointer uppercase tracking-wider">
-                📊 PYQs (FREE)
-            </button>
-            <button data-category="Premium handwritten notes" onclick="window.switchCategoryFilter('Premium handwritten notes', this)" class="category-filter-btn snap-center shrink-0 bg-white hover:bg-gray-50 text-emerald-600 text-[10px] font-bold px-3.5 py-2 rounded-xl border border-gray-200 transition-all cursor-pointer uppercase tracking-wider">
-                🔥 Premium Notes (FREE)
-            </button>
-            <button data-category="NCERT solutions" onclick="window.switchCategoryFilter('NCERT solutions', this)" class="category-filter-btn snap-center shrink-0 bg-white hover:bg-gray-50 text-emerald-600 text-[10px] font-bold px-3.5 py-2 rounded-xl border border-gray-200 transition-all cursor-pointer uppercase tracking-wider">
-                📖 NCERT Solutions (FREE)
-            </button>
+            <button data-category="ALL" onclick="window.switchCategoryFilter('ALL', this)" class="category-filter-btn snap-center shrink-0 bg-blue-600 text-white text-[10px] font-black px-3.5 py-2 rounded-xl border border-blue-600 transition-all cursor-pointer uppercase tracking-wider shadow-xs">🌐 Show All</button>
+            <button data-category="Project File" onclick="window.switchCategoryFilter('Project File', this)" class="category-filter-btn snap-center shrink-0 bg-white hover:bg-gray-50 text-gray-600 text-[10px] font-bold px-3.5 py-2 rounded-xl border border-gray-200 transition-all cursor-pointer uppercase tracking-wider">📁 Project Files</button>
+            <button data-category="Practical File" onclick="window.switchCategoryFilter('Practical File', this)" class="category-filter-btn snap-center shrink-0 bg-white hover:bg-gray-50 text-gray-600 text-[10px] font-bold px-3.5 py-2 rounded-xl border border-gray-200 transition-all cursor-pointer uppercase tracking-wider">📚 Practical Files</button>
+            <button data-category="PYQs Materials" onclick="window.switchCategoryFilter('PYQs Materials', this)" class="category-filter-btn snap-center shrink-0 bg-white hover:bg-gray-50 text-emerald-600 text-[10px] font-bold px-3.5 py-2 rounded-xl border border-gray-200 transition-all cursor-pointer uppercase tracking-wider">📊 PYQs (FREE)</button>
+            <button data-category="Coaching Notes" onclick="window.switchCategoryFilter('Coaching Notes', this)" class="category-filter-btn snap-center shrink-0 bg-white hover:bg-gray-50 text-emerald-600 text-[10px] font-bold px-3.5 py-2 rounded-xl border border-gray-200 transition-all cursor-pointer uppercase tracking-wider">🔥 Premium Notes (FREE)</button>
+            <button data-category="NCERT Books" onclick="window.switchCategoryFilter('NCERT Books', this)" class="category-filter-btn snap-center shrink-0 bg-white hover:bg-gray-50 text-emerald-600 text-[10px] font-bold px-3.5 py-2 rounded-xl border border-gray-200 transition-all cursor-pointer uppercase tracking-wider">📖 NCERT Solutions (FREE)</button>
         </div>
     </div>
 
-    <!-- Main Products Section -->
     <main class="max-w-6xl mx-auto px-4 pt-2 pb-20">
         <h3 id="catalogHeaderTitle" class="text-[10px] font-bold tracking-widest text-gray-400 uppercase mb-3 px-1">Available Documents</h3>
-        
         <div id="dynamicShopGrid" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
             <p class="text-xs text-gray-400 col-span-full text-center py-8">Loading available cloud collection catalog templates...</p>
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="p-4 bg-white border-t text-center text-[10px] text-gray-400 font-medium">&copy; 2026 Powered by File Work Station.</footer>
+    <footer class="p-4 bg-white border-t text-center text-[10px] text-gray-400 font-medium">© 2026 Powered by File Work Station.</footer>
 
-    <!-- Firebase Script Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // Firebase Configuration
         const firebaseConfig = {
-          apiKey: "AIzaSyBC7S5uJd9izO5qOV8W40T7KtNvGEk6oIU",
-          authDomain: "filesworkstation-b3074.firebaseapp.com",
-          projectId: "filesworkstation-b3074",
-          storageBucket: "filesworkstation-b3074.firebasestorage.app",
-          messagingSenderId: "922394201956",
-          appId: "1:922394201956:web:7d18af7a9027103c0ab471"
+            apiKey: "AIzaSyBC7S5uJd9izO5qOV8W40T7KtNvGEk6oIU",
+            authDomain: "filesworkstation-b3074.firebaseapp.com",
+            projectId: "filesworkstation-b3074",
+            storageBucket: "filesworkstation-b3074.firebasestorage.app",
+            messagingSenderId: "922394201956",
+            appId: "1:922394201956:web:7d18af7a9027103c0ab471"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const grid = document.getElementById('dynamicShopGrid');
-        
-        let masterProductsLocalCache = []; 
+
+        let masterProductsLocalCache = [];
         let activeSelectedCategoryStr = "ALL";
 
-        // Initial badge update on document initialization
         updateCartBadgeCount();
 
-        // Listen for realtime updates from Firestore collection
         onSnapshot(collection(db, "products"), (snapshot) => {
             masterProductsLocalCache = [];
-            if (snapshot.empty) {
-                grid.innerHTML = `<p class="text-xs text-gray-400 col-span-full text-center py-8">No products found. Please open the Admin Panel to upload customized templates!</p>`;
+            if(snapshot.empty) {
+                grid.innerHTML = `<p class="text-xs text-gray-400 col-span-full text-center py-8">No products found.</p>`;
                 return;
             }
             snapshot.forEach((doc) => {
@@ -122,34 +121,37 @@
             executeRenderingPipeline();
         });
 
-        // Pipeline to render dynamic product catalog cards
         function executeRenderingPipeline() {
             grid.innerHTML = "";
-            
-            const filteredStackArray = activeSelectedCategoryStr === "ALL" 
-                ? masterProductsLocalCache 
+            const filteredStackArray = activeSelectedCategoryStr === "ALL"
+                ? masterProductsLocalCache
                 : masterProductsLocalCache.filter(prod => prod.category === activeSelectedCategoryStr);
-                
+
             if(filteredStackArray.length === 0) {
-                grid.innerHTML = `<p class="text-xs text-gray-400 col-span-full text-center py-12 font-medium">✨ No documents available inside this specific category stack yet!</p>`;
+                grid.innerHTML = `<p class="text-xs text-gray-400 col-span-full text-center py-12 font-medium">✨ No documents available.</p>`;
                 return;
             }
 
             filteredStackArray.forEach((prod) => {
-                const textPosition = prod.placement || "center"; 
-                const drivePdfUrlString = prod.documentUrl || ""; 
+                const textPosition = prod.placement || "center";
+                const drivePdfUrlString = prod.documentUrl || "";
                 const itemCategory = prod.category || "";
-                
-                // NEW: Read the layout format type safely from DB
-                const formatType = prod.formatType || "Full Booklet"; 
+                const formatType = prod.formatType || "Full Booklet";
 
-                // Quotes and special characters escape helper for safe data string transmission
                 const safeTitle = prod.title.replace(/['"]/g, '\\$&');
                 const safePdfUrl = drivePdfUrlString.replace(/['"]/g, '\\$&');
+                const safeFormatType = formatType.replace(/['"]/g, '\\$&');
 
-                let priceSectionHTML = `<span class="text-xs font-extrabold text-gray-900">₹${prod.price} <span class="text-[9px] font-normal text-gray-400">/ page</span></span>`;
-                
-                // Professional Single Action Button Configuration
+                let priceLabel = "/ file";
+                if(formatType === "Single Page") {
+                    priceLabel = "/ page";
+                }
+
+                let priceSectionHTML = `
+                    <span class="text-xs font-extrabold text-gray-900">
+                        ₹${prod.price} <span class="text-[9px] font-normal text-gray-400">${priceLabel}</span>
+                    </span>`;
+
                 let actionButtonHTML = `
                     <div class="mt-2.5">
                         <button onclick="event.stopPropagation(); window.addToCart('${safeTitle}', ${prod.price}, '${prod.imageUrl}', '${textPosition}', '${safePdfUrl}', '${itemCategory}')" class="w-full bg-gray-950 hover:bg-blue-600 text-white font-bold text-[11px] py-1.5 rounded-lg transition-all cursor-pointer text-center uppercase tracking-wider">
@@ -157,18 +159,16 @@
                         </button>
                     </div>`;
 
-                // Evaluation logic wrapper for free material types (Sync with new labels)
-                if(["NCERT solutions", "Premium handwritten notes", "PYQ"].includes(itemCategory)) {
+                if(["NCERT Books", "Coaching Notes", "PYQs Materials"].includes(itemCategory)) {
                     priceSectionHTML = `<span class="text-xs font-black text-emerald-600 uppercase tracking-wide">🎁 FREE MATERIAL</span>`;
                     actionButtonHTML = `
                         <div class="mt-2.5">
-                            <button onclick="event.stopPropagation(); window.openProduct('${safeTitle}', 0, '${prod.imageUrl}', '${textPosition}', '${safePdfUrl}', '${itemCategory}')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] py-1.5 rounded-lg transition-all cursor-pointer uppercase tracking-wider">
+                            <button onclick="event.stopPropagation(); window.openProduct('${safeTitle}', 0, '${prod.imageUrl}', '${textPosition}', '${safePdfUrl}', '${itemCategory}', '${safeFormatType}')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] py-1.5 rounded-lg transition-all cursor-pointer uppercase tracking-wider">
                                 📥 Get Free Download
                             </button>
                         </div>`;
                 }
 
-                // Dynamic Format Badge Builder Logic (PDF Booklet vs Single Page)
                 let formatBadgeHTML = "";
                 if(formatType === "Single Page") {
                     formatBadgeHTML = `<span class="absolute top-1.5 left-1.5 bg-purple-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider shadow-sm">📄 Single Page</span>`;
@@ -177,54 +177,31 @@
                 }
 
                 grid.innerHTML += `
-                    <div onclick="window.openProduct('${safeTitle}', ${prod.price}, '${prod.imageUrl}', '${textPosition}', '${safePdfUrl}', '${itemCategory}')" class="product-card bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col justify-between shadow-sm p-3 group">
+                    <div onclick="window.openProduct('${safeTitle}', ${prod.price}, '${prod.imageUrl}', '${textPosition}', '${safePdfUrl}', '${itemCategory}', '${safeFormatType}')" class="product-card bg-white rounded-xl border border-gray-200 overflow-hidden flex flex-col justify-between shadow-sm p-3 group">
                         <div class="relative bg-gray-100 aspect-[3/4] flex items-center justify-center border rounded-lg overflow-hidden mb-2">
                             <img src="${prod.imageUrl}" class="w-full h-full object-cover" alt="${prod.title}" loading="lazy">
-                            <!-- Removed Live Format & Added Dynamic Format Type Badges Here -->
                             ${formatBadgeHTML}
                         </div>
                         <div>
-                            <!-- Sentence format layout tracking logic using normal text handling -->
                             <h4 class="font-bold text-xs text-gray-900 line-clamp-2 leading-tight normal-case mb-1 group-hover:text-blue-600 transition-colors">${prod.title}</h4>
-                            <div class="flex justify-between items-baseline mt-2">
-                                ${priceSectionHTML}
-                            </div>
+                            <div class="flex justify-between items-baseline mt-2">${priceSectionHTML}</div>
                             ${actionButtonHTML}
                         </div>
-                    </div>
-                `;
+                    </div>`;
             });
         }
 
-        // Global category filtration function node mapping
         window.switchCategoryFilter = function(targetCategoryString, buttonElementRef) {
             activeSelectedCategoryStr = targetCategoryString;
-            
-            // Revert all filter buttons back to their baseline configurations safely (Sync with new labels)
             document.querySelectorAll('.category-filter-btn').forEach(btn => {
-                const cat = btn.getAttribute('data-category');
-                if (["NCERT solutions", "Premium handwritten notes", "PYQ"].includes(cat)) {
-                    btn.className = "category-filter-btn snap-center shrink-0 bg-white hover:bg-gray-50 text-emerald-600 text-[10px] font-bold px-3.5 py-2 rounded-xl border border-gray-200 transition-all cursor-pointer uppercase tracking-wider";
-                } else {
-                    btn.className = "category-filter-btn snap-center shrink-0 bg-white hover:bg-gray-50 text-gray-600 text-[10px] font-bold px-3.5 py-2 rounded-xl border border-gray-200 transition-all cursor-pointer uppercase tracking-wider";
-                }
+                btn.className = "category-filter-btn snap-center shrink-0 bg-white hover:bg-gray-50 text-gray-600 text-[10px] font-bold px-3.5 py-2 rounded-xl border border-gray-200 transition-all cursor-pointer uppercase tracking-wider";
             });
-            
-            // Set targeted button status to Active state
             buttonElementRef.className = "category-filter-btn snap-center shrink-0 bg-blue-600 text-white text-[10px] font-black px-3.5 py-2 rounded-xl border border-blue-600 transition-all cursor-pointer uppercase tracking-wider shadow-xs";
-            
-            const titleNode = document.getElementById('catalogHeaderTitle');
-            if(titleNode) {
-                titleNode.innerText = targetCategoryString === "ALL" ? "Available Documents" : `${targetCategoryString} Queue Stack`;
-            }
-            
             executeRenderingPipeline();
         };
 
-        // Add to Cart persistence logic routing endpoint
         window.addToCart = function(title, price, imgString, placement, driveDocUrl, category) {
             let currentCartList = JSON.parse(localStorage.getItem('userCartDataItems')) || [];
-            
             const isExist = currentCartList.some(item => item.title === title);
             if(!isExist) {
                 currentCartList.push({
@@ -236,41 +213,37 @@
                     selectedCategory: category
                 });
                 localStorage.setItem('userCartDataItems', JSON.stringify(currentCartList));
-                alert(`✨ "${title}" has been added to your cart successfully!`);
+                alert(`✨ "${title}" added to cart!`);
                 updateCartBadgeCount();
             } else {
-                alert("⚠️ This document file is already added to your cart.");
+                alert("⚠️ Already added.");
             }
         };
 
-        // Sync and refresh navbar dynamic notification badges
         function updateCartBadgeCount() {
             const currentCartList = JSON.parse(localStorage.getItem('userCartDataItems')) || [];
             const badge = document.getElementById('navCartCount');
-            if(badge) {
-                if(currentCartList.length > 0) {
-                    badge.innerText = currentCartList.length;
-                    badge.classList.remove('hidden');
-                } else {
-                    badge.classList.add('hidden');
-                }
+            if(currentCartList.length > 0) {
+                badge.innerText = currentCartList.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
             }
         }
 
-        // Direct Order Now redirection tracking router / Open Preview sheet modal handler
-        function openProduct(title, price, imgString, placement, driveDocUrl, category) {
+        function openProduct(title, price, imgString, placement, driveDocUrl, category, formatType) {
             let verifiedAssetDestination = driveDocUrl;
-            if(!verifiedAssetDestination || verifiedAssetDestination === "#" || verifiedAssetDestination === "Xyz") {
+            if(!verifiedAssetDestination || verifiedAssetDestination === "#") {
                 verifiedAssetDestination = imgString || "#";
             }
-
             localStorage.setItem('selectedTitle', title);
             localStorage.setItem('selectedPrice', price.toString());
-            localStorage.setItem('deliverableFileUrl', verifiedAssetDestination); 
-            localStorage.setItem('shopImageUrl', imgString); 
-            localStorage.setItem('textPlacement', placement);      
-            localStorage.setItem('selectedCategory', category); 
-            window.location.href = 'preview.html'; 
+            localStorage.setItem('deliverableFileUrl', verifiedAssetDestination);
+            localStorage.setItem('shopImageUrl', imgString);
+            localStorage.setItem('textPlacement', placement);
+            localStorage.setItem('selectedCategory', category);
+            localStorage.setItem('selectedFormatType', formatType || "Full Booklet"); // Ekdam sahi tracking ke liye ye line add kari
+            window.location.href = 'preview.html';
         }
         window.openProduct = openProduct;
     </script>
