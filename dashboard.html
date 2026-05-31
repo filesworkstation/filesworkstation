@@ -1,43 +1,22 @@
-<!DOCTYPE html>  
+<!DOCTYPE html>
 <html lang="en">  
 <head>  
 <meta charset="UTF-8">  
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>My Dashboard & Cart - File Work Station</title>  
-<link rel="preconnect" href="https://fonts.googleapis.com">  
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>  
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght=400;600;800;900&display=swap" rel="stylesheet">  
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+<title>FWS Dashboard - Smart Orders</title>  
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">  
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>  
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>  
 <style>  
-body{  
-    font-family:'Inter',sans-serif;  
-    background:#f5f7fb;  
-}  
-@keyframes blinker{  
-    50%{ opacity:0.4; }  
-}  
-.timer-blink{  
-    animation:blinker 1s linear infinite;  
-}  
-.glass-card{  
-    background:rgba(255,255,255,0.95);  
-    backdrop-filter:blur(8px);  
-}  
-.smooth-card{  
-    transition:all .25s ease;  
-}  
-.smooth-card:hover{  
-    transform:translateY(-2px);  
-    box-shadow:0 10px 30px rgba(0,0,0,0.06);  
-}  
-.hide-scroll::-webkit-scrollbar{  
-    width:0;  
-}  
+body{ font-family:'Inter',sans-serif; background:#f5f7fb; }  
+@keyframes blinker{ 50%{ opacity:0.4; } }  
+.timer-blink{ animation:blinker 1s linear infinite; }  
+.glass-card{ background:rgba(255,255,255,0.96); backdrop-filter:blur(10px); }  
+.smooth-card{ transition:all .2s ease; }  
+.hide-scroll::-webkit-scrollbar{ width:0; }  
 </style>  
-</head>
-<body class="text-gray-800 min-h-screen pb-12">  
-
+</head>  
+<body class="text-gray-800 min-h-screen pb-12">
 <nav class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 px-4 py-3 shadow-sm">  
 <div class="max-w-5xl mx-auto flex items-center justify-between gap-3">  
 <a href="index.html" class="bg-gray-100 hover:bg-gray-200 transition-all px-4 py-2 rounded-2xl text-xs font-black text-gray-700 shrink-0">← Continue</a>  
@@ -47,9 +26,9 @@ body{
 </div>  
 <div class="w-[90px]"></div>  
 </div>  
-</nav>  
-
-<div class="max-w-5xl mx-auto p-3 sm:p-4 space-y-5 mt-2">  
+</nav>
+<div class="max-w-5xl mx-auto p-3 sm:p-4 space-y-5 mt-2">
+    <!-- CART SECTION -->
     <div id="cartMainSection" class="hidden glass-card rounded-3xl border border-gray-100 shadow-sm p-4 sm:p-5">  
         <div class="flex items-center justify-between mb-4">  
             <div>  
@@ -59,15 +38,17 @@ body{
             <div class="bg-blue-50 text-blue-700 text-xs font-black px-3 py-2 rounded-2xl"><span id="cartCountHeader">0</span> Items</div>  
         </div>  
         <div id="cartItemsListContainer" class="space-y-3 max-h-[350px] overflow-y-auto hide-scroll"></div>  
-        <div id="cartTotalFooterWrapper" class="hidden mt-5 pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-4">  
+        <div id="cartTotalFooterWrapper" class="hidden mt-5 pt-4 border-t border-gray-100 flex-col sm:flex-row items-center justify-between gap-4">  
             <div>  
                 <p class="text-[10px] text-gray-400 uppercase font-black tracking-wider">Total Amount</p>  
                 <h3 class="text-2xl font-black text-green-600">₹<span id="cartTotalAmountLabel">0</span></h3>  
             </div>  
-            <button onclick="window.initiateCartCheckout('CART_ALL')" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 transition-all text-white font-black text-xs uppercase tracking-widest px-7 py-3 rounded-2xl shadow-lg cursor-pointer">Checkout Now 🚀</button>  
+            <div class="flex gap-2 w-full sm:w-auto">
+                <button onclick="window.initiateCartCheckout('CART_ALL')" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 transition-all text-white font-black text-xs uppercase tracking-widest px-6 py-3 rounded-2xl shadow-lg cursor-pointer">Checkout 🚀</button>
+            </div>
         </div>  
-    </div>  
-
+    </div>
+    <!-- ORDERS HISTORY -->
     <div class="glass-card rounded-3xl border border-gray-100 shadow-sm p-4 sm:p-5">  
         <div class="flex items-center justify-between mb-5">  
             <div>  
@@ -79,59 +60,36 @@ body{
             <p class="text-xs text-gray-400 text-center py-8">Fetching database records...</p>  
         </div>  
     </div>  
-</div>  
-
+</div>
+<!-- Delivery Info Modal -->
 <div id="deliveryFormModal" class="fixed inset-0 z-50 hidden bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">  
     <div class="bg-white rounded-2xl w-full max-w-md p-5 shadow-xl border border-gray-100 max-h-[90vh] overflow-y-auto">  
         <h3 class="text-sm font-black text-gray-900 uppercase tracking-wider mb-4 pb-2 border-b">🚚 Delivery Specifications</h3>  
         <div class="space-y-3.5">  
-            <div>  
-                <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">📞 WhatsApp Number</label>  
-                <input type="tel" id="formStudentPhone" placeholder="Enter 10 digit phone number" class="w-full bg-gray-50 border rounded-xl p-3 text-xs focus:outline-none focus:border-blue-600 font-semibold">  
-            </div>  
-            <div>  
-                <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">🏛️ School / University / College</label>  
-                <input type="text" id="formStudentCollege" placeholder="e.g. GLA University" class="w-full bg-gray-50 border rounded-xl p-3 text-xs focus:outline-none focus:border-blue-600 font-semibold">  
-            </div>  
+            <div><label class="block text-[10px] font-black text-gray-400 uppercase mb-1">📞 WhatsApp Number</label><input type="tel" id="formStudentPhone" placeholder="Enter 10 digit phone number" class="w-full bg-gray-50 border rounded-xl p-3 text-xs focus:outline-none focus:border-blue-600 font-semibold"></div>  
+            <div><label class="block text-[10px] font-black text-gray-400 uppercase mb-1">🏛️ School / University</label><input type="text" id="formStudentCollege" placeholder="e.g. GLA University" class="w-full bg-gray-50 border rounded-xl p-3 text-xs focus:outline-none focus:border-blue-600 font-semibold"></div>  
             <div class="grid grid-cols-2 gap-2">  
-                <div>  
-                    <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">🏫 Class Name</label>  
-                    <input type="text" id="formStudentCourse" placeholder="e.g. B.Tech" class="w-full bg-gray-50 border rounded-xl p-3 text-xs focus:outline-none focus:border-blue-600 font-semibold">  
-                </div>  
-                <div>  
-                    <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">🔢 Class Section</label>  
-                    <input type="text" id="formStudentSection" placeholder="e.g. Sec-A" class="w-full bg-gray-50 border rounded-xl p-3 text-xs focus:outline-none focus:border-blue-600 font-semibold">  
-                </div>  
+                <div><label class="block text-[10px] font-black text-gray-400 uppercase mb-1">🏫 Class Name</label><input type="text" id="formStudentCourse" placeholder="e.g. B.Tech" class="w-full bg-gray-50 border rounded-xl p-3 text-xs focus:outline-none focus:border-blue-600 font-semibold"></div>  
+                <div><label class="block text-[10px] font-black text-gray-400 uppercase mb-1">🔢 Section</label><input type="text" id="formStudentSection" placeholder="e.g. Sec-A" class="w-full bg-gray-50 border rounded-xl p-3 text-xs focus:outline-none focus:border-blue-600 font-semibold"></div>  
             </div>  
-            <div>  
-                <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">🆔 Class Roll Number</label>  
-                <input type="text" id="formStudentRoll" placeholder="Enter roll number" class="w-full bg-gray-50 border rounded-xl p-3 text-xs focus:outline-none focus:border-blue-600 font-semibold">  
-            </div>  
-            <div>  
-                <label class="block text-[10px] font-black text-gray-400 uppercase mb-1">📍 Delivery Address</label>  
-                <textarea id="formStudentAddress" rows="2" placeholder="Hostel / Room / Area" class="w-full bg-gray-50 border rounded-xl p-3 text-xs focus:outline-none focus:border-blue-600 font-semibold resize-none"></textarea>  
-            </div>  
+            <div><label class="block text-[10px] font-black text-gray-400 uppercase mb-1">🆔 Roll Number</label><input type="text" id="formStudentRoll" placeholder="Enter roll number" class="w-full bg-gray-50 border rounded-xl p-3 text-xs focus:outline-none focus:border-blue-600 font-semibold"></div>  
+            <div><label class="block text-[10px] font-black text-gray-400 uppercase mb-1">📍 Delivery Address</label><textarea id="formStudentAddress" rows="2" placeholder="Hostel / Room / Area" class="w-full bg-gray-50 border rounded-xl p-3 text-xs focus:outline-none focus:border-blue-600 font-semibold resize-none"></textarea></div>  
         </div>  
         <div class="grid grid-cols-2 gap-3 mt-5 border-t pt-4">  
-            <button onclick="window.closeDeliveryModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-bold py-3 rounded-xl uppercase tracking-wider transition-all">Cancel</button>  
-            <button onclick="window.processCheckoutPaymentQR()" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-black py-3 rounded-xl uppercase tracking-wider transition-all">Confirm QR</button>  
+            <button onclick="window.closeDeliveryModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-bold py-3 rounded-xl uppercase">Cancel</button>  
+            <button onclick="window.processCheckoutPaymentQR()" class="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-black py-3 rounded-xl uppercase">Confirm QR</button>  
         </div>  
     </div>  
-</div>  
-
+</div>
+<!-- Payment QR Modal -->
 <div id="paymentGatewayPopupModal" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">  
     <div class="bg-white rounded-3xl w-full max-w-sm p-5 shadow-2xl border border-gray-100 relative text-center">  
         <button onclick="window.cancelCheckoutGateway()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 font-black">✕</button>  
-        <span class="inline-block bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider mb-3">Secure Payment Gateway</span>  
-        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-2 mb-4 flex items-center justify-center gap-2">  
-            <span class="text-[10px] font-black uppercase text-amber-700">Session Ends In</span>  
-            <span id="liveTimerCountdown" class="text-sm font-black text-amber-600 timer-blink font-mono">02:30</span>  
-        </div>  
+        <span class="inline-block bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider mb-3">Secure Payment</span>  
+        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-2 mb-4 flex items-center justify-center gap-2"><span class="text-[10px] font-black uppercase text-amber-700">Session Ends In</span><span id="liveTimerCountdown" class="text-sm font-black text-amber-600 timer-blink font-mono">02:30</span></div>  
         <p class="text-xs text-gray-400 font-bold uppercase">Total Payment</p>  
         <h2 class="text-3xl font-black text-gray-900 mt-1 mb-4">₹<span id="checkoutPopupAmountLabel">0</span></h2>  
-        <div class="flex justify-center mb-5">  
-            <div id="qrcodeWrapper" class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm"></div>  
-        </div>  
+        <div class="flex justify-center mb-5"><div id="qrcodeWrapper" class="bg-white p-3 rounded-2xl border border-gray-100 shadow-sm"></div></div>  
         <div class="border-t border-gray-100 pt-4">  
             <input type="text" id="userPaymentUtr" placeholder="Enter UTR / Transaction ID" class="w-full bg-gray-50 border border-gray-200 rounded-2xl p-3 text-xs font-bold font-mono focus:outline-none focus:border-purple-500 mb-3">  
             <button onclick="window.submitFinalOrderToFirebase()" class="w-full bg-green-600 hover:bg-green-700 transition-all text-white font-black text-xs uppercase tracking-wider py-3 rounded-2xl shadow-lg">Verify & Submit 🚀</button>  
@@ -158,12 +116,14 @@ let activeCheckoutPayload = null;
 let timerIntervalNode = null;
 let studentSavedDetailsObj = null;
 
-document.addEventListener("DOMContentLoaded",()=>{
-    renderCartStructurePipeline();
-    syncLiveOrdersHistoryPipeline();
-});
+// ADMIN WHATSAPP NUMBER (TERA NUMBER DAAL DIYA)
+const ADMIN_WHATSAPP = "919457906960";
 
-function renderCartStructurePipeline(){
+document.addEventListener("DOMContentLoaded",()=>{
+    renderCart();
+    syncOrders();
+});
+function renderCart(){
     cartCacheItems = JSON.parse(localStorage.getItem('userCartDataItems')) || [];
     const container = document.getElementById('cartItemsListContainer');
     const footer = document.getElementById('cartTotalFooterWrapper');
@@ -177,106 +137,71 @@ function renderCartStructurePipeline(){
     }
     cartSection.classList.remove('hidden');
     container.innerHTML = "";
-    let cartCumulativeSum = 0;
+    let total = 0;
 
     cartCacheItems.forEach((item,index)=>{
         const priceNum = parseInt(item.price) || 0;
-        cartCumulativeSum += priceNum;
+        total += priceNum;
         const displayPrice = priceNum === 0 ? "FREE" : `₹${priceNum}`;
-        const actionButtonText = priceNum === 0 ? "Get PDF 📥" : "Order 🚚";
-        
-        const actualImg = item.shopImageUrl || item.imageUrl || 'https://cdn-icons-png.flaticon.com/512/337/337946.png';
+        const actionText = priceNum === 0 ? "Get PDF 📥" : "Order 🚚";
+        const imgUrl = item.shopImageUrl || item.imageUrl || 'https://cdn-icons-png.flaticon.com/512/337/337946.png';
 
         container.innerHTML += `
         <div class="smooth-card bg-gray-50 border border-gray-100 rounded-3xl p-3">
             <div class="flex gap-3">
-                <img src="${actualImg}" class="w-20 h-24 rounded-2xl object-cover bg-white border border-gray-100 shrink-0">
+                <img src="${imgUrl}" class="w-20 h-24 rounded-2xl object-cover bg-white border border-gray-100 shrink-0">
                 <div class="flex-1 min-w-0">
                     <div class="flex items-start justify-between gap-2">
-                        <div class="min-w-0">
-                            <h4 class="font-black text-sm text-gray-900 leading-tight break-words">${item.title}</h4>
-                            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wide mt-1">${item.selectedCategory || 'Practical File'}</p>
-                        </div>
+                        <div><h4 class="font-black text-sm text-gray-900">${item.title}</h4><p class="text-[10px] text-gray-400 uppercase font-bold">${item.selectedCategory || 'File'}</p></div>
                         <span class="text-sm font-black ${priceNum === 0 ? 'text-green-600' : 'text-gray-900'}">${displayPrice}</span>
                     </div>
                     <div class="flex gap-2 mt-4">
-                        <button onclick="window.initiateCartCheckout('SINGLE', ${index})" class="flex-1 bg-blue-600 hover:bg-blue-700 transition-all text-white text-[10px] font-black px-3 py-2.5 rounded-xl uppercase">${actionButtonText}</button>
-                        <button onclick="window.removeCartItemByIndex(${index})" class="bg-red-50 hover:bg-red-100 transition-all text-red-600 text-[10px] font-black px-4 py-2.5 rounded-xl uppercase">✕</button>
+                        <button onclick="window.initiateCheckout(${index})" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black px-3 py-2.5 rounded-xl uppercase">${actionText}</button>
+                        <button onclick="window.removeItem(${index})" class="bg-red-50 hover:bg-red-100 text-red-600 text-[10px] font-black px-4 py-2.5 rounded-xl">✕</button>
                     </div>
                 </div>
             </div>
         </div>`;
     });
     footer.classList.remove('hidden');
-    document.getElementById('cartTotalAmountLabel').innerText = cartCumulativeSum;
+    document.getElementById('cartTotalAmountLabel').innerText = total;
 }
 
-window.removeCartItemByIndex = function(index){
+window.removeItem = function(index){
     cartCacheItems.splice(index,1);
     localStorage.setItem('userCartDataItems', JSON.stringify(cartCacheItems));
-    renderCartStructurePipeline();
-    window.cancelCheckoutGateway();
+    renderCart();
+    window.cancelCheckout();
 };
-
-window.initiateCartCheckout = function(mode,index=null){
-    if(mode === 'SINGLE' && index !== null){
-        const targetObj = cartCacheItems[index];
-        const itemPrice = parseInt(targetObj.price) || 0;
-        if(itemPrice === 0){
-            const dlUrl = targetObj.deliverableFileUrl || "#";
-            if(dlUrl !== "#"){
-                alert("🎉 FREE PDF download started!");
-                window.open(dlUrl,'_blank');
-            }else{
-                alert("Download link missing.");
-            }
-            return;
-        }
+window.initiateCheckout = function(index){
+    const item = cartCacheItems[index];
+    const priceNum = parseInt(item.price) || 0;
+    if(priceNum === 0){
+        if(item.deliverableFileUrl && item.deliverableFileUrl !== "#"){
+            alert("🎉 FREE PDF! Downloading...");
+            window.open(item.deliverableFileUrl,'_blank');
+        } else { alert("No download link"); }
+        return;
     }
-
-    let titleStr = "";
-    let finalBillAmount = 0;
-    let targetUrlsArray = [];
-    let productImage = "";
-    let productCategory = "";
-
-    if(mode === 'CART_ALL'){
-        titleStr = "Full Cart Print Pack";
-        finalBillAmount = cartCacheItems.reduce((acc,curr)=> acc + (parseInt(curr.price) || 0),0);
-        targetUrlsArray = ["CART_ALL_ITEMS"];
-        productImage = cartCacheItems[0]?.shopImageUrl || cartCacheItems[0]?.imageUrl || "";
-        productCategory = "Multiple Files";
-    }else if(mode === 'SINGLE' && index !== null){
-        const targetObj = cartCacheItems[index];
-        titleStr = targetObj.title;
-        finalBillAmount = parseInt(targetObj.price) || 0;
-        targetUrlsArray = [targetObj.deliverableFileUrl || "#"];
-        productImage = targetObj.shopImageUrl || targetObj.imageUrl || "";
-        productCategory = targetObj.selectedCategory || "Practical File";
-    }
-
     activeCheckoutPayload = {
-        mode: mode,
-        indexRef: index,
-        title: titleStr,
-        amount: finalBillAmount,
-        urls: targetUrlsArray,
-        productImage: productImage,
-        productCategory: productCategory
+        mode: 'SINGLE',
+        index: index,
+        title: item.title,
+        amount: priceNum,
+        itemsList: [{ title: item.title, price: priceNum, category: item.selectedCategory }]
     };
-    window.openDeliveryModal();
+    document.getElementById('deliveryFormModal').classList.remove('hidden');
 };
 
-window.cancelCheckoutGateway = function(){
-    if(timerIntervalNode) clearInterval(timerIntervalNode);
-    activeCheckoutPayload = null;
-    studentSavedDetailsObj = null;
-    document.getElementById('paymentGatewayPopupModal').classList.add('hidden');
-    document.getElementById('userPaymentUtr').value = "";
-};
-
-window.openDeliveryModal = function(){
-    if(!activeCheckoutPayload) return;
+window.initiateCartCheckout = function(){
+    if(cartCacheItems.length === 0) return;
+    const totalAmount = cartCacheItems.reduce((a,b)=> a + (parseInt(b.price)||0),0);
+    activeCheckoutPayload = {
+        mode: 'CART_ALL',
+        title: `Cart Pack (${cartCacheItems.length} items)`,
+        amount: totalAmount,
+        itemsList: cartCacheItems.map(i => ({ title: i.title, price: parseInt(i.price)||0, category: i.selectedCategory }))
+    };
     document.getElementById('deliveryFormModal').classList.remove('hidden');
 };
 
@@ -284,6 +209,12 @@ window.closeDeliveryModal = function(){
     document.getElementById('deliveryFormModal').classList.add('hidden');
 };
 
+window.cancelCheckout = function(){
+    if(timerIntervalNode) clearInterval(timerIntervalNode);
+    activeCheckoutPayload = null;
+    studentSavedDetailsObj = null;
+    document.getElementById('paymentGatewayPopupModal').classList.add('hidden');
+};
 window.processCheckoutPaymentQR = function(){
     const phone = document.getElementById('formStudentPhone').value.trim();
     const college = document.getElementById('formStudentCollege').value.trim();
@@ -293,181 +224,148 @@ window.processCheckoutPaymentQR = function(){
     const address = document.getElementById('formStudentAddress').value.trim();
 
     if(!phone || !college || !course || !section || !roll || !address){
-        alert("Please fill all fields.");
-        return;
+        alert("Please fill all fields."); return;
     }
+    if(phone.length < 10){ alert("Valid 10-digit phone required"); return; }
 
     studentSavedDetailsObj = { phone, college, course, section, roll, address };
-    window.closeDeliveryModal();
+    document.getElementById('deliveryFormModal').classList.add('hidden');
     document.getElementById('paymentGatewayPopupModal').classList.remove('hidden');
     document.getElementById('checkoutPopupAmountLabel').innerText = activeCheckoutPayload.amount;
 
     const qrWrapper = document.getElementById('qrcodeWrapper');
     qrWrapper.innerHTML = "";
-    const upiId = "adityahard@fam";
-    const sanitizedTitle = encodeURIComponent(activeCheckoutPayload.title.substring(0,20));
-    const upiUrl = `upi://pay?pa=${upiId}&pn=FileWorkStation&tn=${sanitizedTitle}&am=${activeCheckoutPayload.amount}&cu=INR`;
-
+    const upiUrl = `upi://pay?pa=adityahard@fam&pn=FWS&am=${activeCheckoutPayload.amount}&cu=INR`;
     new QRCode(qrWrapper,{ text: upiUrl, width: 170, height: 170 });
-    startPaymentTimerCountdown();
-};
-
-function startPaymentTimerCountdown(){
+    
     if(timerIntervalNode) clearInterval(timerIntervalNode);
-    let timeAllocated = 150;
-    const display = document.getElementById('liveTimerCountdown');
+    let timeLeft = 150;
+    const timerDisplay = document.getElementById('liveTimerCountdown');
     timerIntervalNode = setInterval(()=>{
-        let minutes = Math.floor(timeAllocated / 60);
-        let seconds = timeAllocated % 60;
-        minutes = minutes < 10 ? "0" + minutes : minutes;
-        seconds = seconds < 10 ? "0" + seconds : seconds;
-        display.innerText = `${minutes}:${seconds}`;
-        if(--timeAllocated < 0){
-            clearInterval(timerIntervalNode);
-            alert("Session expired.");
-            window.cancelCheckoutGateway();
-        }
+        let mins = Math.floor(timeLeft/60);
+        let secs = timeLeft%60;
+        timerDisplay.innerText = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+        if(--timeLeft < 0){ clearInterval(timerIntervalNode); alert("Session expired"); window.cancelCheckout(); }
     },1000);
-}
-
+};
 window.submitFinalOrderToFirebase = async function(){
     const utrValue = document.getElementById('userPaymentUtr').value.trim();
-    if(!utrValue || utrValue.length < 6){
-        alert("Please enter valid UTR number.");
-        return;
-    }
-    if(!activeCheckoutPayload){
-        alert("Session expired.");
-        return;
-    }
+    if(!utrValue || utrValue.length < 6){ alert("Enter valid UTR"); return; }
+    if(!activeCheckoutPayload){ alert("Session expired"); return; }
 
-    const customGeneratedOrderId = "FWS" + Math.floor(100000 + Math.random() * 900000);
-    const compressedPayload = {
-        orderId: String(customGeneratedOrderId),
-        item: String(activeCheckoutPayload.title),
-        amount: Number(activeCheckoutPayload.amount),
-        quantity: Number(activeCheckoutPayload.mode === 'CART_ALL' ? cartCacheItems.length : 1),
-        phone: String(studentSavedDetailsObj.phone),
-        college: String(studentSavedDetailsObj.college),
-        class: String(studentSavedDetailsObj.course),
-        section: String(studentSavedDetailsObj.section),
-        rollNumber: String(studentSavedDetailsObj.roll),
-        address: String(studentSavedDetailsObj.address),
-        utr: String(utrValue),
+    const orderId = "FWS" + Math.floor(100000 + Math.random() * 900000);
+    
+    // Prepare order summary for WhatsApp
+    let itemsText = "";
+    let totalPrice = 0;
+    activeCheckoutPayload.itemsList.forEach((itm, idx) => {
+        itemsText += `${idx+1}. ${itm.title} - ₹${itm.price}\n`;
+        totalPrice += itm.price;
+    });
+    
+    const customerPhone = studentSavedDetailsObj.phone;
+    const whatsappMessage = `✅ *ORDER CONFIRMED* ✅
+    
+🆔 Order ID: ${orderId}
+📅 Date: ${new Date().toLocaleString()}
+
+📦 *ITEMS ORDERED:*
+${itemsText}
+
+💰 *TOTAL: ₹${totalPrice}*
+
+👤 *CUSTOMER DETAILS:*
+📞 WhatsApp: ${studentSavedDetailsObj.phone}
+🏛️ College: ${studentSavedDetailsObj.college}
+🏫 Class: ${studentSavedDetailsObj.course} (${studentSavedDetailsObj.section})
+🆔 Roll: ${studentSavedDetailsObj.roll}
+📍 Address: ${studentSavedDetailsObj.address}
+
+💳 UTR: ${utrValue}
+📌 Status: Payment Verification Pending
+
+Thank you for shopping at File Work Station! 📚`;
+
+    const encodedMsg = encodeURIComponent(whatsappMessage);
+    // 🔥 TERA NUMBER PE REDIRECT HOGA PRE-TYPED MESSAGE KE SAATH 🔥
+    const whatsappUrl = `https://wa.me/${ADMIN_WHATSAPP}?text=${encodedMsg}`;
+    
+    // Save to Firebase
+    const orderData = {
+        orderId: orderId,
+        item: activeCheckoutPayload.title,
+        amount: activeCheckoutPayload.amount,
+        phone: studentSavedDetailsObj.phone,
+        college: studentSavedDetailsObj.college,
+        class: studentSavedDetailsObj.course,
+        section: studentSavedDetailsObj.section,
+        rollNumber: studentSavedDetailsObj.roll,
+        address: studentSavedDetailsObj.address,
+        utr: utrValue,
         status: "Pending",
-        downloadUrl: String(activeCheckoutPayload.urls[0]),
-        productImage: String(activeCheckoutPayload.productImage || ""),
-        productCategory: String(activeCheckoutPayload.productCategory || ""),
-        timestamp: String(new Date().toISOString())
+        items: activeCheckoutPayload.itemsList,
+        timestamp: new Date().toISOString()
     };
-
+    
     try{
-        await addDoc(collection(db,"orders"), compressedPayload);
-        let trackerList = JSON.parse(localStorage.getItem('myFwsOrders')) || [];
-        trackerList.push(customGeneratedOrderId);
-        localStorage.setItem('myFwsOrders', JSON.stringify(trackerList));
-
+        await addDoc(collection(db,"orders"), orderData);
+        
+        let tracker = JSON.parse(localStorage.getItem('myFwsOrders')) || [];
+        tracker.push(orderId);
+        localStorage.setItem('myFwsOrders', JSON.stringify(tracker));
+        
+        // Clear cart
         if(activeCheckoutPayload.mode === 'CART_ALL'){
-            localStorage.removeItem('userCartDataItems');
-        }else if(activeCheckoutPayload.mode === 'SINGLE'){
-            cartCacheItems.splice(activeCheckoutPayload.indexRef, 1);
-            localStorage.setItem('userCartDataItems', JSON.stringify(cartCacheItems));
+            cartCacheItems = [];
+        } else {
+            cartCacheItems.splice(activeCheckoutPayload.index, 1);
         }
-
+        localStorage.setItem('userCartDataItems', JSON.stringify(cartCacheItems));
+        
         if(timerIntervalNode) clearInterval(timerIntervalNode);
-        alert(`🎉 Order Placed Successfully!\nTracking ID: ${customGeneratedOrderId}`);
-        renderCartStructurePipeline();
-        window.cancelCheckoutGateway();
-    }catch(err){
-        alert("Firebase Error: " + err.message);
+        
+        alert(`🎉 Order Placed! ID: ${orderId}\nRedirecting to WhatsApp...`);
+        window.cancelCheckout();
+        renderCart();
+        
+        // 🔥 REDIRECT TO WHATSAPP WITH ALL DETAILS 🔥
+        window.location.href = whatsappUrl;
+        
+    } catch(err){
+        alert("Error: " + err.message);
     }
 };
-
-function syncLiveOrdersHistoryPipeline(){
+function syncOrders(){
     const historyContainer = document.getElementById('ordersHistoryListContainer');
     const trackerList = JSON.parse(localStorage.getItem('myFwsOrders')) || [];
     if(trackerList.length === 0){
-        historyContainer.innerHTML = `
-        <div class="text-center py-10">
-            <div class="text-5xl mb-3">📦</div>
-            <h3 class="text-sm font-black text-gray-700">No Orders Yet</h3>
-            <p class="text-xs text-gray-400 mt-2">Your ordered files will appear here.</p>
-        </div>`;
+        historyContainer.innerHTML = `<div class="text-center py-10"><div class="text-5xl mb-3">📦</div><h3 class="text-sm font-black">No Orders Yet</h3></div>`;
         return;
     }
-
-    onSnapshot(collection(db,"orders"),(snapshot)=>{
-        if(snapshot.empty){
-            historyContainer.innerHTML = `
-            <div class="text-center py-10">
-                <div class="text-5xl mb-3">📭</div>
-                <h3 class="text-sm font-black text-gray-700">No Records Found</h3>
-            </div>`;
-            return;
-        }
-        let finalHtmlRows = "";
-        snapshot.forEach((doc)=>{
+    onSnapshot(collection(db,"orders"), (snapshot)=>{
+        let html = "";
+        snapshot.forEach(doc=>{
             const data = doc.data();
-            if(trackerList.includes(String(data.orderId))){
-                let statusBadgeHtml = `<span class="bg-amber-100 text-amber-700 font-black text-[10px] px-3 py-1 rounded-full uppercase">Pending</span>`;
-                let deliveryStatusTextHtml = `<p class="text-[10px] text-amber-600 font-bold">⏳ Payment Verification Pending</p>`;
-
-                if(data.status === "Approved"){
-                    statusBadgeHtml = `<span class="bg-blue-100 text-blue-700 font-black text-[10px] px-3 py-1 rounded-full uppercase">Out For Delivery 🚚</span>`;
-                    deliveryStatusTextHtml = `<p class="text-[10px] text-blue-600 font-bold">📍 Arriving Soon</p>`;
-                }else if(data.status === "Delivered"){
-                    statusBadgeHtml = `<span class="bg-green-100 text-green-700 font-black text-[10px] px-3 py-1 rounded-full uppercase">Delivered ✅</span>`;
-                    deliveryStatusTextHtml = `<p class="text-[10px] text-green-600 font-bold">🎉 Package Delivered</p>`;
-                }else if(data.status === "Rejected"){
-                    statusBadgeHtml = `<span class="bg-red-100 text-red-700 font-black text-[10px] px-3 py-1 rounded-full uppercase">Rejected ❌</span>`;
-                    deliveryStatusTextHtml = `<p class="text-[10px] text-red-600 font-bold">Invalid UTR / Payment Failed</p>`;
-                }
-
-                let formattedDateStr = "";
-                if (data.timestamp) {
-                    try {
-                        const orderDateObj = new Date(data.timestamp);
-                        formattedDateStr = orderDateObj.toLocaleDateString('en-IN', {
-                            day: '2-digit',
-                            month: 'short',
-                            year: 'numeric'
-                        });
-                    } catch(e) {
-                        formattedDateStr = "";
-                    }
-                }
-
-                // Image fallback configuration
-                const dbImage = data.productImage || data.shopImageUrl || "";
-                const renderingImg = (dbImage && dbImage !== '#' && dbImage.trim() !== '') ? dbImage : 'https://cdn-icons-png.flaticon.com/512/337/337946.png';
-
-                finalHtmlRows += `
-                <div class="smooth-card bg-white border border-gray-100 rounded-3xl p-3 shadow-sm">
-                    <div class="flex gap-3">
-                        <img src="${renderingImg}" class="w-20 h-24 rounded-2xl object-cover border border-gray-100 bg-gray-50 shrink-0">
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-start justify-between gap-2">
-                                <div class="min-w-0">
-                                    <h3 class="text-sm font-black text-gray-900 leading-tight break-words">${data.item}</h3>
-                                    <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wide mt-1">${data.productCategory || 'Practical File'}</p>
-                                </div>
-                                ${statusBadgeHtml}
-                            </div>
-                            <div class="flex items-center gap-2 mt-3 flex-wrap">
-                                <div class="bg-gray-100 text-gray-700 px-2 py-1 rounded-xl text-[10px] font-black">🆔 ${data.orderId}</div>
-                                <div class="bg-green-50 text-green-700 px-2 py-1 rounded-xl text-[10px] font-black">₹${data.amount}</div>
-                                ${formattedDateStr ? `<div class="bg-blue-50 text-blue-700 px-2 py-1 rounded-xl text-[10px] font-black">📅 ${formattedDateStr}</div>` : ''}
-                            </div>
-                            <div class="mt-3">${deliveryStatusTextHtml}</div>
-                        </div>
+            if(trackerList.includes(data.orderId)){
+                let statusBadge = `<span class="bg-amber-100 text-amber-700 text-[10px] px-3 py-1 rounded-full">Pending</span>`;
+                if(data.status === "Approved") statusBadge = `<span class="bg-blue-100 text-blue-700">Out For Delivery 🚚</span>`;
+                if(data.status === "Delivered") statusBadge = `<span class="bg-green-100 text-green-700">Delivered ✅</span>`;
+                html += `
+                <div class="bg-white border rounded-3xl p-3 shadow-sm">
+                    <div class="flex justify-between items-start">
+                        <div><h3 class="font-black text-sm">${data.item}</h3><p class="text-[10px] text-gray-400">${data.orderId}</p></div>
+                        ${statusBadge}
                     </div>
+                    <div class="flex justify-between mt-2"><span class="text-xs font-black">₹${data.amount}</span><span class="text-[10px] text-gray-400">${data.timestamp ? new Date(data.timestamp).toLocaleDateString() : ''}</span></div>
                 </div>`;
             }
         });
-        historyContainer.innerHTML = finalHtmlRows || `<div class="text-center py-10"><p class="text-xs text-gray-400">No matching orders found.</p></div>`;
+        historyContainer.innerHTML = html || `<p class="text-xs text-center py-8">No orders found</p>`;
     });
 }
+
+window.renderCart = renderCart;
+window.syncOrders = syncOrders;
 </script>
 </body>
 </html>
-
