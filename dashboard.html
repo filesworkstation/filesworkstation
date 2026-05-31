@@ -6,7 +6,7 @@
 <title>My Dashboard & Cart - File Work Station</title>  
 <link rel="preconnect" href="https://fonts.googleapis.com">  
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>  
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap" rel="stylesheet">  
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght=400;600;800;900&display=swap" rel="stylesheet">  
 <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>  
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>  
 <style>  
@@ -185,7 +185,6 @@ function renderCartStructurePipeline(){
         const displayPrice = priceNum === 0 ? "FREE" : `₹${priceNum}`;
         const actionButtonText = priceNum === 0 ? "Get PDF 📥" : "Order 🚚";
         
-        // Exact Sync with index.html shopImageUrl key
         const actualImg = item.shopImageUrl || item.imageUrl || 'https://cdn-icons-png.flaticon.com/512/337/337946.png';
 
         container.innerHTML += `
@@ -218,6 +217,7 @@ window.removeCartItemByIndex = function(index){
     renderCartStructurePipeline();
     window.cancelCheckoutGateway();
 };
+
 window.initiateCartCheckout = function(mode,index=null){
     if(mode === 'SINGLE' && index !== null){
         const targetObj = cartCacheItems[index];
@@ -385,90 +385,4 @@ window.submitFinalOrderToFirebase = async function(){
 
 function syncLiveOrdersHistoryPipeline(){
     const historyContainer = document.getElementById('ordersHistoryListContainer');
-    const historyContainer = document.getElementById('ordersHistoryListContainer');
     const trackerList = JSON.parse(localStorage.getItem('myFwsOrders')) || [];
-
-    if(trackerList.length === 0){
-        historyContainer.innerHTML = `
-        <div class="text-center py-10">
-            <div class="text-5xl mb-3">📦</div>
-            <h3 class="text-sm font-black text-gray-700">No Orders Yet</h3>
-            <p class="text-xs text-gray-400 mt-2">Your ordered files will appear here.</p>
-        </div>`;
-        return;
-    }
-
-    onSnapshot(collection(db,"orders"),(snapshot)=>{
-        if(snapshot.empty){
-            historyContainer.innerHTML = `
-            <div class="text-center py-10">
-                <div class="text-5xl mb-3">📭</div>
-                <h3 class="text-sm font-black text-gray-700">No Records Found</h3>
-            </div>`;
-            return;
-        }
-        let finalHtmlRows = "";
-        snapshot.forEach((doc)=>{
-            const data = doc.data();
-            if(trackerList.includes(String(data.orderId))){
-                let statusBadgeHtml = `<span class="bg-amber-100 text-amber-700 font-black text-[10px] px-3 py-1 rounded-full uppercase">Pending</span>`;
-                let deliveryStatusTextHtml = `<p class="text-[10px] text-amber-600 font-bold">⏳ Payment Verification Pending</p>`;
-
-                if(data.status === "Approved"){
-                    statusBadgeHtml = `<span class="bg-blue-100 text-blue-700 font-black text-[10px] px-3 py-1 rounded-full uppercase">Out For Delivery 🚚</span>`;
-                    deliveryStatusTextHtml = `<p class="text-[10px] text-blue-600 font-bold">📍 Arriving Soon</p>`;
-                }else if(data.status === "Delivered"){
-                    statusBadgeHtml = `<span class="bg-green-100 text-green-700 font-black text-[10px] px-3 py-1 rounded-full uppercase">Delivered ✅</span>`;
-                    deliveryStatusTextHtml = `<p class="text-[10px] text-green-600 font-bold">🎉 Package Delivered</p>`;
-                }else if(data.status === "Rejected"){
-                    statusBadgeHtml = `<span class="bg-red-100 text-red-700 font-black text-[10px] px-3 py-1 rounded-full uppercase">Rejected ❌</span>`;
-                    deliveryStatusTextHtml = `<p class="text-[10px] text-red-600 font-bold">Invalid UTR / Payment Failed</p>`;
-                }
-
-                let formattedDateStr = "";
-                if (data.timestamp) {
-                    try {
-                        const orderDateObj = new Date(data.timestamp);
-                        formattedDateStr = orderDateObj.toLocaleDateString('en-IN', {
-                            day: '2-digit',
-                            month: 'short',
-                            year: 'numeric'
-                        });
-                    } catch(e) {
-                        formattedDateStr = "";
-                    }
-                }
-
-                // Super exact data injection point check
-                const dbImage = data.productImage || data.shopImageUrl || "";
-                const renderingImg = (dbImage && dbImage !== '#' && dbImage.trim() !== '') ? dbImage : 'https://cdn-icons-png.flaticon.com/512/337/337946.png';
-
-                finalHtmlRows += `
-                <div class="smooth-card bg-white border border-gray-100 rounded-3xl p-3 shadow-sm">
-                    <div class="flex gap-3">
-                        <img src="${renderingImg}" class="w-20 h-24 rounded-2xl object-cover border border-gray-100 bg-gray-50 shrink-0">
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-start justify-between gap-2">
-                                <div class="min-w-0">
-                                    <h3 class="text-sm font-black text-gray-900 leading-tight break-words">${data.item}</h3>
-                                    <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wide mt-1">${data.productCategory || 'Practical File'}</p>
-                                </div>
-                                ${statusBadgeHtml}
-                            </div>
-                            <div class="flex items-center gap-2 mt-3 flex-wrap">
-                                <div class="bg-gray-100 text-gray-700 px-2 py-1 rounded-xl text-[10px] font-black">🆔 ${data.orderId}</div>
-                                <div class="bg-green-50 text-green-700 px-2 py-1 rounded-xl text-[10px] font-black">₹${data.amount}</div>
-                                ${formattedDateStr ? `<div class="bg-blue-50 text-blue-700 px-2 py-1 rounded-xl text-[10px] font-black">📅 ${formattedDateStr}</div>` : ''}
-                            </div>
-                            <div class="mt-3">${deliveryStatusTextHtml}</div>
-                        </div>
-                    </div>
-                </div>`;
-            }
-        });
-        historyContainer.innerHTML = finalHtmlRows || `<div class="text-center py-10"><p class="text-xs text-gray-400">No matching orders found.</p></div>`;
-    });
-}
-</script>
-</body>
-</html>
