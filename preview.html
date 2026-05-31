@@ -510,13 +510,45 @@
                 localStorage.setItem('myFwsOrders', JSON.stringify(localOrdersCache));
 
                 if(timerIntervalNode) clearInterval(timerIntervalNode);
-                alert(`🎉 Order Placed Successfully!\nYour Order ID: ${uniqueGeneratedOrderId}\nTracking under user dashboard.`);
-                window.location.href = 'dashboard.html';
+const adminWhatsappNumber = "919457906960";
 
-            } catch (error) {
-                alert("Database insertion pipeline failed: " + error.message);
-            }
-        };
-    </script>  
-</body>  
+const whatsappMessage =
+`🚨 NEW ORDER RECEIVED - FILE WORK STATION 🚨
+
+📌 Order Details: ${currentProductTitle} (${currentPageCount} Pages)
+🔢 Order ID Ref: ${uniqueGeneratedOrderId}
+👤 Student Name: ${studentSavedDetailsObj.name}
+📞 WhatsApp Contact: ${studentSavedDetailsObj.phone}
+🏛️ School/University: ${studentSavedDetailsObj.college}
+🏫 Class Name : ${studentSavedDetailsObj.course}
+🔢 Class Section : ${studentSavedDetailsObj.section}
+🆔 Class Roll Number: ${studentSavedDetailsObj.roll}
+📍 Full Delivery Address: ${studentSavedDetailsObj.address}
+💳 Net Paid Amount: ₹${finalCalculatedAmount} (${currentPageCount} Pages)
+🧾 Transaction UTR Id: ${utrValue}
+
+Please process and align my practical/certificate elements vectors manually!`;
+
+const whatsappUrl =
+`https://wa.me/${adminWhatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
+
+if(timerIntervalNode) clearInterval(timerIntervalNode);
+
+alert(`🎉 Order Placed Successfully!
+Your Order ID: ${uniqueGeneratedOrderId}
+Redirecting to WhatsApp...`);
+
+window.location.href = whatsappUrl;
+
+setTimeout(() => {
+window.location.href = 'dashboard.html';
+}, 2500);
+
+} catch (error) {
+alert("Database insertion pipeline failed: " + error.message);
+}
+};
+</script>
+
+</body>
 </html>
